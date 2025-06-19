@@ -17,10 +17,6 @@ const LoginPage = () => {
     login(formData);
   };
 
-
-
-  
-
   return (
     <div className="h-screen grid lg:grid-cols-2">
       {/* Left Side - Form */}
@@ -50,8 +46,6 @@ const LoginPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-base-content/40" />
                 </div>
-
-                
                 <input
                   type="email"
                   className={`input input-bordered w-full pl-10`}
