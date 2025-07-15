@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 function App() {
   const [url, setUrl] = useState('');
   const [videos, setVideos] = useState([]);
@@ -17,7 +19,7 @@ function App() {
 
     setLoading(true);
     try {
-      const res = await axios.get(`/api/playlist?url=${encodeURIComponent(url)}`);
+      const res = await axios.get(`${API_BASE_URL}/api/playlist?url=${encodeURIComponent(url)}`);
       setVideos(res.data.videos);
       setPlaylistTitle(res.data.playlistTitle);
     } catch (err) {
@@ -30,10 +32,10 @@ function App() {
 
   const download = async (id, format) => {
     try {
-      const downloadUrl = `/api/download?videoId=${id}&format=${format}`;
+      const downloadUrl = `${API_BASE_URL}/api/download?videoId=${id}&format=${format}`;
       
       // Test the download endpoint first
-      const testResponse = await axios.get(`/api/download/test?videoId=${id}`);
+      const testResponse = await axios.get(`${API_BASE_URL}/api/download/test?videoId=${id}`);
       if (!testResponse.data.valid) {
         alert(`Cannot download video: ${testResponse.data.error}`);
         return;
@@ -73,9 +75,9 @@ function App() {
       
       try {
         // Test the download endpoint first
-        const testResponse = await axios.get(`/api/download/test?videoId=${video.id}`);
+        const testResponse = await axios.get(`${API_BASE_URL}/api/download/test?videoId=${video.id}`);
         if (testResponse.data.valid) {
-          const downloadUrl = `/api/download?videoId=${video.id}&format=${format}`;
+          const downloadUrl = `${API_BASE_URL}/api/download?videoId=${video.id}&format=${format}`;
           window.open(downloadUrl, '_blank');
           successCount++;
           
