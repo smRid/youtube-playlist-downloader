@@ -45,8 +45,3 @@ coverage/
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
-.eslintcache
-
-# Downloads folder (if created by the app)
-downloads/

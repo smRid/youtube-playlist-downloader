@@ -1,7 +1,57 @@
 const express = require('express');
 const ytpl = require('ytpl');
 const UserAgent = require('user-agents');
+const YouTubeBypass = require('../utils/youtubeBypass');
 const router = express.Router();
+
+
+// Initialize the YouTube bypass system
+const youtubeBypass = new YouTubeBypass();
+
+// Video info endpoint using the enhanced bypass system
+router.post('/video-info', async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: 'Video URL is required' });
+    }
+
+    console.log(`[VideoInfo] Fetching video info for: ${url}`);
+    
+    // Extract video ID from URL
+    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+    if (!videoId) {
+      return res.status(400).json({ error: 'Invalid YouTube URL' });
+    }
+
+    // Use the enhanced bypass system
+    const result = await youtubeBypass.extractVideoInfo(videoId);
+    
+    if (result.success) {
+      console.log(`[VideoInfo] Successfully fetched info for: ${result.info.videoDetails.title}`);
+      res.json({
+        success: true,
+        video: {
+          id: result.info.videoDetails.videoId,
+          title: result.info.videoDetails.title,
+          duration: result.info.videoDetails.lengthSeconds,
+          viewCount: result.info.videoDetails.viewCount,
+          author: result.info.videoDetails.author,
+          uploadDate: result.info.videoDetails.uploadDate
+        }
+      });
+    } else {
+      console.log(`[VideoInfo] Failed to fetch video info: ${result.error}`);
+      res.status(500).json({ 
+        error: 'Failed to fetch video information', 
+        details: result.error 
+      });
+    }
+  } catch (error) {
+    console.error(`[VideoInfo] Error: ${error.message}`);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
 
 router.get('/', async (req, res) => {
   try {
