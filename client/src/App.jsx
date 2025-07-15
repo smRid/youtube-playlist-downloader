@@ -37,7 +37,16 @@ function App() {
       // Test the download endpoint first
       const testResponse = await axios.get(`${API_BASE_URL}/api/download/test?videoId=${id}`);
       if (!testResponse.data.valid) {
-        alert(`Cannot download video: ${testResponse.data.error}`);
+        const errorMessage = testResponse.data.error;
+        
+        // Check for YouTube bot detection errors
+        if (errorMessage.includes('YouTube has temporarily blocked') || 
+            errorMessage.includes('Sign in to confirm') || 
+            errorMessage.includes('not a bot')) {
+          alert(`⚠️ YouTube Protection Notice\n\n${errorMessage}\n\n💡 Tip: Try a different video or wait a few minutes before trying again.`);
+        } else {
+          alert(`Cannot download video: ${errorMessage}`);
+        }
         return;
       }
       
@@ -45,7 +54,13 @@ function App() {
       window.open(downloadUrl, '_blank');
     } catch (error) {
       console.error('Download test failed:', error);
-      alert('Failed to initiate download. Please try again.');
+      
+      // Check for network errors or server issues
+      if (error.response && error.response.status === 503) {
+        alert('⚠️ Service Temporarily Unavailable\n\nYouTube has temporarily blocked video downloads. Please try again later.');
+      } else {
+        alert('Failed to initiate download. Please try again.');
+      }
     }
   };
 
@@ -85,7 +100,16 @@ function App() {
           const delay = videos.length > 20 ? 2000 : 1000; // Longer delay for larger playlists
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
-          console.error(`Failed to download ${video.title}:`, testResponse.data.error);
+          const errorMessage = testResponse.data.error;
+          console.error(`Failed to download ${video.title}:`, errorMessage);
+          
+          // Check if it's a YouTube bot detection error
+          if (errorMessage.includes('YouTube has temporarily blocked') || 
+              errorMessage.includes('Sign in to confirm') || 
+              errorMessage.includes('not a bot')) {
+            console.warn(`YouTube blocked video: ${video.title}`);
+          }
+          
           failCount++;
         }
       } catch (error) {
@@ -98,9 +122,9 @@ function App() {
     setDownloadProgress('');
     
     if (failCount === 0) {
-      alert(`Successfully initiated download for all ${successCount} videos!`);
+      alert(`✅ Success!\n\nSuccessfully initiated download for all ${successCount} videos!`);
     } else {
-      alert(`Download initiated for ${successCount} videos. ${failCount} videos failed to download.`);
+      alert(`⚠️ Partial Success\n\nDownload initiated for ${successCount} videos.\n${failCount} videos failed to download.\n\n💡 Note: Some failures may be due to YouTube's temporary blocks. Try again later for better results.`);
     }
   };
 
@@ -221,12 +245,21 @@ function App() {
               </button>
             </div>
             
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
               <p className="text-sm text-blue-700 flex items-center gap-2">
                 <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Bulk download will open multiple browser windows. Make sure to allow popups for this site.
+              </p>
+            </div>
+            
+            <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+              <p className="text-sm text-yellow-700 flex items-center gap-2">
+                <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                YouTube may temporarily block some downloads. If a video fails, try again later.
               </p>
             </div>
             

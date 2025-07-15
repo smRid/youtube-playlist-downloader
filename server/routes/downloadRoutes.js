@@ -2,8 +2,10 @@ const express = require('express');
 const ytdl = require('@distube/ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
+const YouTubeBypass = require('../utils/youtubeBypass');
 
 const router = express.Router();
+const bypassService = new YouTubeBypass();
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 // Test endpoint to check if a video is available
@@ -14,23 +16,38 @@ router.get('/test', async (req, res) => {
     return res.status(400).json({ error: 'Video ID is required' });
   }
 
-  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  console.log(`Testing video access for: ${videoId}`);
   
   try {
-    const isValid = await ytdl.validateURL(url);
-    if (!isValid) {
-      return res.json({ valid: false, error: 'Invalid YouTube URL' });
+    // Use bypass service for validation
+    const result = await bypassService.validateVideoAccess(videoId);
+    
+    if (result.valid) {
+      console.log(`Video validation successful using method: ${result.method}`);
+      res.json({ 
+        valid: true, 
+        title: result.title,
+        duration: result.duration,
+        method: result.method
+      });
+    } else {
+      console.log(`Video validation failed: ${result.error}`);
+      
+      // Enhanced error messages
+      if (result.error.includes('Sign in to confirm') || 
+          result.error.includes('not a bot') || 
+          result.error.includes('This video is not available')) {
+        return res.json({ 
+          valid: false, 
+          error: 'YouTube anti-bot protection detected. Trying alternative methods...' 
+        });
+      }
+      
+      res.json({ valid: false, error: result.error });
     }
-
-    const info = await ytdl.getInfo(url);
-    res.json({ 
-      valid: true, 
-      title: info.videoDetails.title,
-      duration: info.videoDetails.lengthSeconds,
-      formats: info.formats.length
-    });
   } catch (err) {
-    res.json({ valid: false, error: err.message });
+    console.error('Test error:', err);
+    res.json({ valid: false, error: 'Unexpected error: ' + err.message });
   }
 });
 
@@ -45,16 +62,25 @@ router.get('/', async (req, res) => {
   console.log(`Attempting to download: ${url} in format: ${format}`);
 
   try {
-    // First, check if the video is available
-    const isValid = await ytdl.validateURL(url);
-    if (!isValid) {
-      return res.status(400).json({ error: 'Invalid YouTube URL' });
+    // First, validate with bypass service
+    const validation = await bypassService.validateVideoAccess(videoId);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
     }
 
-    const info = await ytdl.getInfo(url);
-    const title = info.videoDetails.title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_').toLowerCase();
+    console.log(`Video validated using method: ${validation.method}`);
     
-    console.log(`Video title: ${info.videoDetails.title}`);
+    // Get video info for filename
+    const infoResult = await bypassService.extractVideoInfo(videoId);
+    let title = 'video';
+    
+    if (infoResult.success) {
+      title = infoResult.info.videoDetails.title
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+    }
+    
     console.log(`Sanitized filename: ${title}`);
 
     if (format === 'mp3') {
@@ -62,12 +88,16 @@ router.get('/', async (req, res) => {
       res.setHeader('Content-Type', 'audio/mpeg');
 
       try {
-        const audioStream = ytdl(url, { 
+        const streamResult = await bypassService.getVideoStream(url, { 
           quality: 'highestaudio',
           filter: 'audioonly'
         });
         
-        ffmpeg(audioStream)
+        if (!streamResult.success) {
+          return res.status(500).json({ error: 'Failed to create audio stream: ' + streamResult.error });
+        }
+        
+        ffmpeg(streamResult.stream)
           .audioBitrate(128)
           .toFormat('mp3')
           .on('error', (err) => {
@@ -91,22 +121,26 @@ router.get('/', async (req, res) => {
       res.setHeader('Content-Type', 'video/mp4');
 
       try {
-        const videoStream = ytdl(url, { 
+        const streamResult = await bypassService.getVideoStream(url, { 
           quality: 'highest'
         });
         
-        videoStream.on('error', (err) => {
+        if (!streamResult.success) {
+          return res.status(500).json({ error: 'Failed to create video stream: ' + streamResult.error });
+        }
+        
+        streamResult.stream.on('error', (err) => {
           console.error('Video stream error:', err);
           if (!res.headersSent) {
             res.status(500).json({ error: 'Failed to download video: ' + err.message });
           }
         });
         
-        videoStream.on('end', () => {
+        streamResult.stream.on('end', () => {
           console.log('Video download completed');
         });
         
-        videoStream.pipe(res);
+        streamResult.stream.pipe(res);
       } catch (streamError) {
         console.error('Video stream creation error:', streamError);
         if (!res.headersSent) {
@@ -116,6 +150,19 @@ router.get('/', async (req, res) => {
     }
   } catch (err) {
     console.error('Download error:', err);
+    
+    // Check for specific YouTube bot detection error
+    if (err.message.includes('Sign in to confirm') || 
+        err.message.includes('not a bot') || 
+        err.message.includes('This video is not available')) {
+      if (!res.headersSent) {
+        res.status(503).json({ 
+          error: 'YouTube anti-bot protection activated. Our bypass systems are working on this...' 
+        });
+      }
+      return;
+    }
+    
     if (!res.headersSent) {
       res.status(500).json({ error: 'Failed to download video. Error: ' + err.message });
     }
