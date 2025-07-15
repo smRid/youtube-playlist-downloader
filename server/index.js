@@ -1,16 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const playlistRoutes = require('./routes/playlistRoutes');
-const downloadRoutes = require('./routes/downloadRoutes');
+const playlistRoutes = require(path.join(__dirname, 'routes', 'playlistRoutes'));
+const downloadRoutes = require(path.join(__dirname, 'routes', 'downloadRoutes'));
 
 // Health check route
 app.get('/', (req, res) => {
   res.json({ message: 'YouTube Playlist Downloader API is running!', timestamp: new Date().toISOString() });
+});
+
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
+  next();
 });
 
 app.use('/api/playlist', playlistRoutes);

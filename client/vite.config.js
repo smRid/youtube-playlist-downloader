@@ -2,15 +2,17 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: command === 'serve' 
+          ? 'http://localhost:5000' 
+          : 'https://yt-playlist-downloader-server.vercel.app',
         changeOrigin: true,
-        secure: false,
+        secure: command !== 'serve',
       },
     },
   },
-})
+}))
