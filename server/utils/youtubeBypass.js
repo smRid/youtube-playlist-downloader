@@ -526,14 +526,123 @@ class YouTubeBypass {
         return cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
     }
 
-    // Advanced YouTube API bypass using internal APIs with latest methods
+    // Simulate page visit to avoid bot detection
+    async simulatePageVisit(videoId) {
+        console.log(`[YouTubeBypass] Simulating page visit for video: ${videoId}`);
+        
+        // Simulate initial page load
+        await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
+        
+        // Simulate scroll behavior
+        this.scrollPosition = Math.floor(Math.random() * 500);
+        
+        // Simulate focus events
+        this.hasFocus = Math.random() > 0.3;
+        
+        // Update interaction timestamps
+        this.lastInteraction = Date.now();
+        this.sessionStartTime = Date.now() - Math.floor(Math.random() * 30000);
+    }
+
+    // Generate advanced user agent with real browser characteristics
+    getAdvancedUserAgent() {
+        const chromeVersions = ['120.0.6099.109', '120.0.6099.129', '120.0.6099.130'];
+        const version = chromeVersions[Math.floor(Math.random() * chromeVersions.length)];
+        
+        return `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${version} Safari/537.36`;
+    }
+
+    // Generate advanced Sec-Ch-Ua header
+    generateAdvancedSecChUa() {
+        const version = 120 + Math.floor(Math.random() * 3);
+        return `"Not_A Brand";v="8", "Chromium";v="${version}", "Google Chrome";v="${version}"`;
+    }
+
+    // Generate advanced full version list
+    generateAdvancedFullVersionList() {
+        const version = 120 + Math.floor(Math.random() * 3);
+        return `"Not_A Brand";v="8.0.0.0", "Chromium";v="${version}.0.6099.109", "Google Chrome";v="${version}.0.6099.109"`;
+    }
+
+    // Simulate browser environment to avoid bot detection
+    async simulateBrowserEnvironment() {
+        // Simulate page load timing
+        await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+        
+        // Simulate mouse movements and interactions
+        this.mouseX = Math.floor(Math.random() * 1920);
+        this.mouseY = Math.floor(Math.random() * 1080);
+        this.lastMouseMove = Date.now();
+        
+        // Simulate keyboard activity
+        this.keyPresses = Math.floor(Math.random() * 10) + 1;
+        this.lastKeyPress = Date.now() - Math.floor(Math.random() * 5000);
+        
+        // Update session fingerprint
+        this.sessionFingerprint = this.generateSessionFingerprint();
+    }
+
+    // Generate session token for API requests
+    generateSessionToken() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+        let result = '';
+        for (let i = 0; i < 32; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    // Generate advanced cookies to avoid bot detection
+    generateAdvancedCookies(visitorData) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+        const generateString = (length) => {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        };
+        
+        const now = Date.now();
+        const expiry = now + (365 * 24 * 60 * 60 * 1000); // 1 year
+        
+        const cookies = [
+            { name: 'VISITOR_INFO1_LIVE', value: visitorData },
+            { name: 'YSC', value: generateString(12) },
+            { name: 'PREF', value: 'f1=50000000&f6=40000000&hl=en&gl=US&f4=4000000&f5=30000&f7=100&f3=8&f2=8000000' },
+            { name: 'CONSENT', value: 'YES+cb.20250716-07-p0.en+FX+667' },
+            { name: 'GPS', value: '1' },
+            { name: '__Secure-3PSID', value: generateString(32) },
+            { name: '__Secure-3PAPISID', value: generateString(32) },
+            { name: 'HSID', value: generateString(16) },
+            { name: 'SSID', value: generateString(16) },
+            { name: 'APISID', value: generateString(32) },
+            { name: 'SAPISID', value: generateString(32) },
+            { name: 'LOGIN_INFO', value: `AFmmF2swRAIgY7${generateString(40)}:${generateString(32)}` },
+            { name: 'wide', value: '1' },
+            { name: 'ST-1gtm5h7', value: generateString(32) },
+            { name: 'SIDCC', value: generateString(32) },
+            { name: '__Secure-1PSIDCC', value: generateString(32) },
+            { name: '__Secure-3PSIDCC', value: generateString(32) }
+        ];
+        
+        return cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+    }
+
+    // Ultra-advanced YouTube API bypass with 2025 stealth methods
     async bypassUsingInternalAPI(videoId) {
-        console.log(`[YouTubeBypass] Attempting internal API bypass for video: ${videoId}`);
+        console.log(`[YouTubeBypass] Attempting ultra-advanced internal API bypass for video: ${videoId}`);
+        
+        // Pre-bypass setup - simulate browser environment
+        await this.simulateBrowserEnvironment();
         
         const apiMethods = [
-            // Method 1: YouTube TV HTML5 Embedded Player (Latest bypass)
+            // Method 1: YouTube TV HTML5 Embedded Player with stealth headers
             async () => {
                 const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+                const visitorData = this.generateVisitorData();
+                const sessionToken = this.generateSessionToken();
+                
                 const payload = {
                     videoId: videoId,
                     context: {
@@ -543,16 +652,46 @@ class YouTubeBypass {
                             clientScreen: 'EMBED',
                             hl: 'en',
                             gl: 'US',
-                            utcOffsetMinutes: 0
+                            utcOffsetMinutes: 0,
+                            visitorData: visitorData,
+                            sessionId: sessionToken,
+                            browserName: 'Chrome',
+                            browserVersion: '120.0.0.0',
+                            osName: 'Windows',
+                            osVersion: '10.0',
+                            platform: 'DESKTOP',
+                            playerType: 'UNIPLAYER',
+                            screenPixelDensity: 1,
+                            screenDensityFloat: 1.0,
+                            userInterfaceTheme: 'USER_INTERFACE_THEME_LIGHT'
                         },
                         thirdParty: {
-                            embedUrl: 'https://www.youtube.com/'
+                            embedUrl: 'https://www.youtube.com/embed/' + videoId
+                        },
+                        user: {
+                            lockedSafetyMode: false
+                        },
+                        request: {
+                            useSsl: true,
+                            sessionIndex: 0,
+                            internalExperimentFlags: [],
+                            consistencyTokenJars: []
                         }
                     },
                     playbackContext: {
                         contentPlaybackContext: {
-                            html5Preference: 'HTML5_PREF_WANTS'
+                            html5Preference: 'HTML5_PREF_WANTS',
+                            lactThreshold: 4000,
+                            signatureTimestamp: Math.floor(Date.now() / 1000),
+                            referer: 'https://www.youtube.com/embed/' + videoId,
+                            currentUrl: 'https://www.youtube.com/embed/' + videoId,
+                            autonavState: 'STATE_NONE',
+                            autoCaptionsDefaultOn: false,
+                            mdxContext: {}
                         }
+                    },
+                    attestationRequest: {
+                        omitBotguardAttestation: false
                     }
                 };
                 
@@ -560,11 +699,31 @@ class YouTubeBypass {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 5.0) AppleWebKit/537.36',
+                        'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         'Origin': 'https://www.youtube.com',
                         'Referer': 'https://www.youtube.com/embed/' + videoId,
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Sec-Fetch-Site': 'same-origin',
+                        'Sec-Fetch-Mode': 'cors',
+                        'Sec-Fetch-Dest': 'empty',
                         'X-YouTube-Client-Name': '85',
-                        'X-YouTube-Client-Version': '2.0'
+                        'X-YouTube-Client-Version': '2.0',
+                        'X-YouTube-Bootstrap-Logged-In': 'false',
+                        'X-YouTube-Identity-Token': this.generateRandomString(64),
+                        'X-YouTube-Page-CL': Math.floor(Math.random() * 1000000000).toString(),
+                        'X-YouTube-Page-Label': 'youtube.tvhtml5.embed_20250716_00_RC00',
+                        'X-YouTube-Utc-Offset': '0',
+                        'X-YouTube-Time-Zone': 'UTC',
+                        'X-Goog-Visitor-Id': visitorData,
+                        'X-Goog-PageId': this.generateRandomString(16),
+                        'X-Goog-EOM-Visitor-Id': visitorData,
+                        'X-Goog-Request-Time': Date.now().toString(),
+                        'X-Origin': 'https://www.youtube.com',
+                        'Cookie': this.generateAdvancedCookies(visitorData)
                     },
                     body: JSON.stringify(payload)
                 });
@@ -579,117 +738,38 @@ class YouTubeBypass {
                 return null;
             },
             
-            // Method 2: YouTube iOS Music API (Latest bypass)
+            // Method 2: YouTube iOS Music API with ultra-stealth mode
             async () => {
                 const apiKey = 'AIzaSyBAETezhkwP0ZWA02RsqT1zu78Fpt0bC_s';
+                const visitorData = this.generateVisitorData();
+                const deviceId = this.generateRandomString(32);
+                
                 const payload = {
                     videoId: videoId,
                     context: {
                         client: {
                             clientName: 'IOS_MUSIC',
                             clientVersion: '6.42',
-                            deviceModel: 'iPhone14,2',
+                            deviceModel: 'iPhone15,2',
                             deviceMake: 'Apple',
                             osName: 'iOS',
-                            osVersion: '17.1.1',
-                            hl: 'en',
-                            gl: 'US'
-                        }
-                    },
-                    playbackContext: {
-                        contentPlaybackContext: {
-                            signatureTimestamp: Math.floor(Date.now() / 1000)
-                        }
-                    }
-                };
-                
-                const response = await this.makeRequest('https://youtubei.googleapis.com/youtubei/v1/player?key=' + apiKey, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'User-Agent': 'com.google.ios.youtubemusic/6.42 (iPhone14,2; U; CPU iOS 17_1_1 like Mac OS X)',
-                        'X-YouTube-Client-Name': '26',
-                        'X-YouTube-Client-Version': '6.42'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
-                        console.log(`[YouTubeBypass] iOS Music API success!`);
-                        return this.formatInternalAPIResponse(data);
-                    }
-                }
-                return null;
-            },
-            
-            // Method 3: YouTube Android TV API (Latest bypass)
-            async () => {
-                const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
-                const payload = {
-                    videoId: videoId,
-                    context: {
-                        client: {
-                            clientName: 'ANDROID_TV',
-                            clientVersion: '2.0',
-                            androidSdkVersion: 30,
-                            platform: 'TV',
-                            hl: 'en',
-                            gl: 'US'
-                        }
-                    },
-                    playbackContext: {
-                        contentPlaybackContext: {
-                            html5Preference: 'HTML5_PREF_WANTS',
-                            lactThreshold: 4000,
-                            signatureTimestamp: Math.floor(Date.now() / 1000)
-                        }
-                    }
-                };
-                
-                const response = await this.makeRequest('https://youtubei.googleapis.com/youtubei/v1/player?key=' + apiKey, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'User-Agent': 'com.google.android.youtube.tv/2.0 (Linux; U; Android 11; en_US)',
-                        'X-YouTube-Client-Name': '7',
-                        'X-YouTube-Client-Version': '2.0'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
-                        console.log(`[YouTubeBypass] Android TV API success!`);
-                        return this.formatInternalAPIResponse(data);
-                    }
-                }
-                return null;
-            },
-            
-            // Method 4: YouTube Web Player with enhanced context (Latest bypass)
-            async () => {
-                const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
-                const clientName = 'WEB';
-                const clientVersion = '2.20250716.01.00';
-                
-                const payload = {
-                    videoId: videoId,
-                    context: {
-                        client: {
-                            clientName: clientName,
-                            clientVersion: clientVersion,
+                            osVersion: '17.2.1',
                             hl: 'en',
                             gl: 'US',
+                            visitorData: visitorData,
+                            deviceId: deviceId,
+                            clientFormFactor: 'SMALL_FORM_FACTOR',
+                            screenWidthPoints: 393,
+                            screenHeightPoints: 852,
+                            screenPixelDensity: 3,
+                            screenDensityFloat: 3.0,
                             utcOffsetMinutes: -300,
-                            visitorData: this.generateVisitorData(),
-                            clientScreen: 'WATCH_FULL_SCREEN',
+                            userInterfaceTheme: 'USER_INTERFACE_THEME_DARK',
+                            timeZone: 'America/New_York',
+                            clientScreen: 'WATCH',
                             mainAppWebInfo: {
-                                graftUrl: '/watch?v=' + videoId,
-                                webDisplayMode: 'WEB_DISPLAY_MODE_BROWSER',
-                                isWebNativeShareAvailable: true
+                                isWebNativeShareAvailable: true,
+                                webDisplayMode: 'WEB_DISPLAY_MODE_BROWSER'
                             }
                         },
                         user: {
@@ -697,16 +777,20 @@ class YouTubeBypass {
                         },
                         request: {
                             useSsl: true,
-                            internalExperimentFlags: [],
+                            sessionIndex: 0,
+                            internalExperimentFlags: ['web_modern_subscribe_style'],
                             consistencyTokenJars: []
                         }
                     },
                     playbackContext: {
                         contentPlaybackContext: {
-                            html5Preference: 'HTML5_PREF_WANTS',
-                            lactThreshold: 4000,
                             signatureTimestamp: Math.floor(Date.now() / 1000),
-                            referer: 'https://www.youtube.com/watch?v=' + videoId
+                            referer: 'https://music.youtube.com/',
+                            currentUrl: 'https://music.youtube.com/watch?v=' + videoId,
+                            autonavState: 'STATE_NONE',
+                            autoCaptionsDefaultOn: false,
+                            html5Preference: 'HTML5_PREF_WANTS',
+                            lactThreshold: 4000
                         }
                     },
                     attestationRequest: {
@@ -718,16 +802,28 @@ class YouTubeBypass {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'User-Agent': this.getRandomUserAgent(),
-                        'Origin': 'https://www.youtube.com',
-                        'Referer': 'https://www.youtube.com/watch?v=' + videoId,
-                        'X-YouTube-Client-Name': '1',
-                        'X-YouTube-Client-Version': clientVersion,
+                        'User-Agent': 'com.google.ios.youtubemusic/6.42 (iPhone15,2; U; CPU iOS 17_2_1 like Mac OS X; en_US)',
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Origin': 'https://music.youtube.com',
+                        'Referer': 'https://music.youtube.com/',
+                        'X-YouTube-Client-Name': '26',
+                        'X-YouTube-Client-Version': '6.42',
                         'X-YouTube-Bootstrap-Logged-In': 'false',
+                        'X-YouTube-Identity-Token': this.generateRandomString(64),
                         'X-YouTube-Page-CL': Math.floor(Math.random() * 1000000000).toString(),
-                        'X-YouTube-Page-Label': 'youtube.desktop.web_20250716_01_RC00',
+                        'X-YouTube-Page-Label': 'youtube.music.ios_20250716_00_RC00',
                         'X-YouTube-Utc-Offset': '-300',
-                        'X-Goog-Visitor-Id': this.generateVisitorData()
+                        'X-YouTube-Time-Zone': 'America/New_York',
+                        'X-Goog-Visitor-Id': visitorData,
+                        'X-Goog-PageId': this.generateRandomString(16),
+                        'X-Goog-Device-Info': 'iPhone15,2',
+                        'X-Goog-App-Version': '6.42',
+                        'X-Goog-EOM-Visitor-Id': visitorData,
+                        'X-Goog-Request-Time': Date.now().toString(),
+                        'X-Origin': 'https://music.youtube.com',
+                        'Cookie': this.generateAdvancedCookies(visitorData)
                     },
                     body: JSON.stringify(payload)
                 });
@@ -735,46 +831,97 @@ class YouTubeBypass {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
-                        console.log(`[YouTubeBypass] Enhanced Web Player success!`);
+                        console.log(`[YouTubeBypass] iOS Music API ultra-stealth success!`);
                         return this.formatInternalAPIResponse(data);
                     }
                 }
                 return null;
             },
             
-            // Method 5: YouTube Age-gate bypass (Latest technique)
+            // Method 3: YouTube Android Client with deep anti-bot measures
             async () => {
                 const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+                const visitorData = this.generateVisitorData();
+                const androidId = this.generateRandomString(16);
+                
                 const payload = {
                     videoId: videoId,
                     context: {
                         client: {
-                            clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
-                            clientVersion: '2.0',
-                            clientScreen: 'EMBED',
+                            clientName: 'ANDROID',
+                            clientVersion: '19.09.37',
+                            androidSdkVersion: 34,
                             hl: 'en',
-                            gl: 'US'
+                            gl: 'US',
+                            visitorData: visitorData,
+                            androidId: androidId,
+                            osName: 'Android',
+                            osVersion: '14',
+                            platform: 'MOBILE',
+                            clientFormFactor: 'SMALL_FORM_FACTOR',
+                            screenWidthPoints: 393,
+                            screenHeightPoints: 852,
+                            screenPixelDensity: 3,
+                            screenDensityFloat: 3.0,
+                            utcOffsetMinutes: -300,
+                            userInterfaceTheme: 'USER_INTERFACE_THEME_DARK',
+                            timeZone: 'America/New_York',
+                            clientScreen: 'WATCH',
+                            mainAppWebInfo: {
+                                isWebNativeShareAvailable: true,
+                                webDisplayMode: 'WEB_DISPLAY_MODE_BROWSER'
+                            }
                         },
-                        thirdParty: {
-                            embedUrl: 'https://www.youtube.com/embed/' + videoId
+                        user: {
+                            lockedSafetyMode: false
+                        },
+                        request: {
+                            useSsl: true,
+                            sessionIndex: 0,
+                            internalExperimentFlags: ['android_attestation_flow'],
+                            consistencyTokenJars: []
                         }
                     },
                     playbackContext: {
                         contentPlaybackContext: {
-                            html5Preference: 'HTML5_PREF_WANTS'
+                            signatureTimestamp: Math.floor(Date.now() / 1000),
+                            referer: 'https://www.youtube.com/',
+                            currentUrl: 'https://www.youtube.com/watch?v=' + videoId,
+                            autonavState: 'STATE_NONE',
+                            autoCaptionsDefaultOn: false,
+                            html5Preference: 'HTML5_PREF_WANTS',
+                            lactThreshold: 4000
                         }
+                    },
+                    attestationRequest: {
+                        omitBotguardAttestation: false
                     }
                 };
                 
-                const response = await this.makeRequest('https://youtubei.googleapis.com/youtubei/v1/player?key=' + apiKey + '&prettyPrint=false', {
+                const response = await this.makeRequest('https://youtubei.googleapis.com/youtubei/v1/player?key=' + apiKey, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 5.0) AppleWebKit/537.36',
-                        'Origin': 'https://www.youtube.com',
-                        'Referer': 'https://www.youtube.com/embed/' + videoId,
-                        'X-YouTube-Client-Name': '85',
-                        'X-YouTube-Client-Version': '2.0'
+                        'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 14; en_US) gzip',
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'X-YouTube-Client-Name': '3',
+                        'X-YouTube-Client-Version': '19.09.37',
+                        'X-YouTube-Bootstrap-Logged-In': 'false',
+                        'X-YouTube-Identity-Token': this.generateRandomString(64),
+                        'X-YouTube-Page-CL': Math.floor(Math.random() * 1000000000).toString(),
+                        'X-YouTube-Page-Label': 'youtube.android_20250716_00_RC00',
+                        'X-YouTube-Utc-Offset': '-300',
+                        'X-YouTube-Time-Zone': 'America/New_York',
+                        'X-Goog-Visitor-Id': visitorData,
+                        'X-Goog-PageId': this.generateRandomString(16),
+                        'X-Goog-Device-Info': 'sm-g998b',
+                        'X-Goog-App-Version': '19.09.37',
+                        'X-Goog-EOM-Visitor-Id': visitorData,
+                        'X-Goog-Request-Time': Date.now().toString(),
+                        'X-Android-ID': androidId,
+                        'Cookie': this.generateAdvancedCookies(visitorData)
                     },
                     body: JSON.stringify(payload)
                 });
@@ -782,7 +929,132 @@ class YouTubeBypass {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
-                        console.log(`[YouTubeBypass] Age-gate bypass success!`);
+                        console.log(`[YouTubeBypass] Android Client deep anti-bot success!`);
+                        return this.formatInternalAPIResponse(data);
+                    }
+                }
+                return null;
+            },
+            
+            // Method 4: YouTube Web Player with maximum stealth
+            async () => {
+                const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+                const visitorData = this.generateVisitorData();
+                const sessionToken = this.generateSessionToken();
+                
+                // Pre-request: simulate visiting the page first
+                await this.simulatePageVisit(videoId);
+                
+                const payload = {
+                    videoId: videoId,
+                    context: {
+                        client: {
+                            clientName: 'WEB',
+                            clientVersion: '2.20250716.01.00',
+                            hl: 'en',
+                            gl: 'US',
+                            visitorData: visitorData,
+                            sessionId: sessionToken,
+                            utcOffsetMinutes: -300,
+                            timeZone: 'America/New_York',
+                            clientScreen: 'WATCH_FULL_SCREEN',
+                            mainAppWebInfo: {
+                                graftUrl: '/watch?v=' + videoId,
+                                webDisplayMode: 'WEB_DISPLAY_MODE_BROWSER',
+                                isWebNativeShareAvailable: true,
+                                webPlayerContextConfigs: {
+                                    webPlayerActionsPorting: {
+                                        getSharePanelCommand: {
+                                            clickTrackingParams: this.generateRandomString(32),
+                                            commandMetadata: {
+                                                webCommandMetadata: {
+                                                    sendPost: true,
+                                                    apiUrl: '/youtubei/v1/share/get_share_panel'
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        user: {
+                            lockedSafetyMode: false
+                        },
+                        request: {
+                            useSsl: true,
+                            sessionIndex: 0,
+                            internalExperimentFlags: [
+                                'web_modern_subscribe_style',
+                                'web_player_kaios_suppress_av1',
+                                'web_player_response_dovs_guard'
+                            ],
+                            consistencyTokenJars: []
+                        }
+                    },
+                    playbackContext: {
+                        contentPlaybackContext: {
+                            html5Preference: 'HTML5_PREF_WANTS',
+                            lactThreshold: 4000,
+                            signatureTimestamp: Math.floor(Date.now() / 1000),
+                            referer: 'https://www.youtube.com/watch?v=' + videoId,
+                            currentUrl: 'https://www.youtube.com/watch?v=' + videoId,
+                            autonavState: 'STATE_NONE',
+                            autoCaptionsDefaultOn: false,
+                            playerWidthPixels: 1280,
+                            playerHeightPixels: 720,
+                            playerType: 'UNIPLAYER',
+                            mdxContext: {}
+                        }
+                    },
+                    attestationRequest: {
+                        omitBotguardAttestation: false
+                    }
+                };
+                
+                const response = await this.makeRequest('https://youtubei.googleapis.com/youtubei/v1/player?key=' + apiKey, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': this.getAdvancedUserAgent(),
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Origin': 'https://www.youtube.com',
+                        'Referer': 'https://www.youtube.com/watch?v=' + videoId,
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Sec-Fetch-Site': 'same-origin',
+                        'Sec-Fetch-Mode': 'cors',
+                        'Sec-Fetch-Dest': 'empty',
+                        'Sec-Ch-Ua': this.generateAdvancedSecChUa(),
+                        'Sec-Ch-Ua-Mobile': '?0',
+                        'Sec-Ch-Ua-Platform': '"Windows"',
+                        'Sec-Ch-Ua-Platform-Version': '"10.0.0"',
+                        'Sec-Ch-Ua-Arch': '"x86"',
+                        'Sec-Ch-Ua-Bitness': '"64"',
+                        'Sec-Ch-Ua-Full-Version-List': this.generateAdvancedFullVersionList(),
+                        'X-YouTube-Client-Name': '1',
+                        'X-YouTube-Client-Version': '2.20250716.01.00',
+                        'X-YouTube-Bootstrap-Logged-In': 'false',
+                        'X-YouTube-Identity-Token': this.generateRandomString(64),
+                        'X-YouTube-Page-CL': Math.floor(Math.random() * 1000000000).toString(),
+                        'X-YouTube-Page-Label': 'youtube.desktop.web_20250716_01_RC00',
+                        'X-YouTube-Utc-Offset': '-300',
+                        'X-YouTube-Time-Zone': 'America/New_York',
+                        'X-Goog-Visitor-Id': visitorData,
+                        'X-Goog-PageId': this.generateRandomString(16),
+                        'X-Goog-EOM-Visitor-Id': visitorData,
+                        'X-Goog-Request-Time': Date.now().toString(),
+                        'X-Origin': 'https://www.youtube.com',
+                        'Cookie': this.generateAdvancedCookies(visitorData)
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
+                        console.log(`[YouTubeBypass] Web Player maximum stealth success!`);
                         return this.formatInternalAPIResponse(data);
                     }
                 }
