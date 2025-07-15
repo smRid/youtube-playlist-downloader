@@ -8,8 +8,8 @@ export default defineConfig(({ command }) => ({
     proxy: {
       '/api': {
         target: command === 'serve' 
-          ? 'http://localhost:5000' 
-          : 'https://yt-playlist-downloader-server.vercel.app',
+          ? 'http://localhost:5000'  // Development: use local server
+          : 'https://yt-playlist-downloader-server.vercel.app',  // Production: use deployed server
         changeOrigin: true,
         secure: command !== 'serve',
       },
