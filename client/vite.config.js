@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'https://yt-playlist-downloader-server.vercel.app/',
+      '/api': 'https://downlyst.vercel.app/',
     },
   },
 })
