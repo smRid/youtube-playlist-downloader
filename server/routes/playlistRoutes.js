@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
 
     console.log(`Fetching playlist: ${playlistUrl}`);
     
-    // Use random user agent for playlist fetching
+    // Enhanced headers for playlist fetching
     const userAgent = new UserAgent();
     const options = {
       limit: 100,
@@ -24,12 +24,41 @@ router.get('/', async (req, res) => {
           'Accept-Encoding': 'gzip, deflate',
           'DNT': '1',
           'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1'
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         }
       }
     };
 
-    const playlist = await ytpl(playlistUrl, options);
+    let playlist;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        // Add delay between retries
+        if (retryCount > 0) {
+          const delay = 1000 * Math.pow(2, retryCount);
+          console.log(`[PlaylistRoute] Waiting ${delay}ms before retry ${retryCount}...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        
+        playlist = await ytpl(playlistUrl, options);
+        break;
+      } catch (error) {
+        retryCount++;
+        console.log(`[PlaylistRoute] Retry ${retryCount}/${maxRetries} failed: ${error.message}`);
+        
+        if (retryCount >= maxRetries) {
+          throw error;
+        }
+      }
+    }
     
     const videos = playlist.items.map(video => ({
       id: video.id,

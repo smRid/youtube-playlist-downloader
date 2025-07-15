@@ -2,10 +2,9 @@ const express = require('express');
 const ytdl = require('@distube/ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
-const YouTubeBypass = require('../utils/youtubeBypass');
+const UserAgent = require('user-agents');
 
 const router = express.Router();
-const bypassService = new YouTubeBypass();
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 // Test endpoint to check if a video is available
@@ -19,34 +18,58 @@ router.get('/test', async (req, res) => {
   console.log(`Testing video access for: ${videoId}`);
   
   try {
-    // Use bypass service for validation
-    const result = await bypassService.validateVideoAccess(videoId);
+    // Enhanced headers for bypass
+    const userAgent = new UserAgent();
+    const options = {
+      requestOptions: {
+        headers: {
+          'User-Agent': userAgent.toString(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Referer': 'https://www.youtube.com/',
+          'Origin': 'https://www.youtube.com'
+        }
+      }
+    };
+
+    // Try to get video info with enhanced headers
+    const info = await ytdl.getInfo(videoId, options);
     
-    if (result.valid) {
-      console.log(`Video validation successful using method: ${result.method}`);
+    if (info && info.videoDetails) {
+      console.log(`Video validation successful: ${info.videoDetails.title}`);
       res.json({ 
         valid: true, 
-        title: result.title,
-        duration: result.duration,
-        method: result.method
+        title: info.videoDetails.title,
+        duration: info.videoDetails.lengthSeconds,
+        method: 'Enhanced headers'
       });
     } else {
-      console.log(`Video validation failed: ${result.error}`);
-      
-      // Enhanced error messages
-      if (result.error.includes('Sign in to confirm') || 
-          result.error.includes('not a bot') || 
-          result.error.includes('This video is not available')) {
-        return res.json({ 
-          valid: false, 
-          error: 'YouTube anti-bot protection detected. Trying alternative methods...' 
-        });
-      }
-      
-      res.json({ valid: false, error: result.error });
+      console.log(`Video validation failed: No video details found`);
+      res.json({ valid: false, error: 'No video details found' });
     }
   } catch (err) {
     console.error('Test error:', err);
+    
+    // Enhanced error messages
+    if (err.message.includes('Sign in to confirm') || 
+        err.message.includes('not a bot') || 
+        err.message.includes('This video is not available')) {
+      return res.json({ 
+        valid: false, 
+        error: 'YouTube anti-bot protection detected. Please try again.' 
+      });
+    }
+    
     res.json({ valid: false, error: 'Unexpected error: ' + err.message });
   }
 });
@@ -62,20 +85,36 @@ router.get('/', async (req, res) => {
   console.log(`Attempting to download: ${url} in format: ${format}`);
 
   try {
-    // First, validate with bypass service
-    const validation = await bypassService.validateVideoAccess(videoId);
-    if (!validation.valid) {
-      return res.status(400).json({ error: validation.error });
-    }
+    // Enhanced headers for bypass
+    const userAgent = new UserAgent();
+    const options = {
+      requestOptions: {
+        headers: {
+          'User-Agent': userAgent.toString(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Referer': 'https://www.youtube.com/',
+          'Origin': 'https://www.youtube.com'
+        }
+      }
+    };
 
-    console.log(`Video validated using method: ${validation.method}`);
-    
     // Get video info for filename
-    const infoResult = await bypassService.extractVideoInfo(videoId);
+    const info = await ytdl.getInfo(videoId, options);
     let title = 'video';
     
-    if (infoResult.success) {
-      title = infoResult.info.videoDetails.title
+    if (info && info.videoDetails) {
+      title = info.videoDetails.title
         .replace(/[^a-zA-Z0-9\s]/g, '')
         .replace(/\s+/g, '_')
         .toLowerCase();
@@ -88,16 +127,13 @@ router.get('/', async (req, res) => {
       res.setHeader('Content-Type', 'audio/mpeg');
 
       try {
-        const streamResult = await bypassService.getVideoStream(url, { 
+        const stream = ytdl(url, { 
           quality: 'highestaudio',
-          filter: 'audioonly'
+          filter: 'audioonly',
+          requestOptions: options.requestOptions
         });
         
-        if (!streamResult.success) {
-          return res.status(500).json({ error: 'Failed to create audio stream: ' + streamResult.error });
-        }
-        
-        ffmpeg(streamResult.stream)
+        ffmpeg(stream)
           .audioBitrate(128)
           .toFormat('mp3')
           .on('error', (err) => {
