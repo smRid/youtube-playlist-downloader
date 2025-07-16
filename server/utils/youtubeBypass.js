@@ -1,8 +1,28 @@
-const fetch = require('node-fetch');
 const UserAgent = require('user-agents');
 const { execSync } = require('child_process');
 const https = require('https');
 const http = require('http');
+
+// Handle node-fetch import for different versions
+let fetch;
+try {
+    // Try CommonJS import first (node-fetch v2)
+    fetch = require('node-fetch');
+} catch (error) {
+    try {
+        // Try ES6 import if available (node-fetch v3)
+        const { default: nodeFetch } = require('node-fetch');
+        fetch = nodeFetch;
+    } catch (error2) {
+        // Fallback to native fetch if Node.js >= 18
+        if (typeof global !== 'undefined' && global.fetch) {
+            fetch = global.fetch;
+        } else {
+            console.warn('[YouTubeBypass] No fetch available, using native HTTP only');
+            fetch = null;
+        }
+    }
+}
 
 class YouTubeBypass {
     constructor() {
@@ -613,53 +633,63 @@ class YouTubeBypass {
     // Enhanced HTTP request method that handles both fetch and native Node.js
     async makeRequest(url, options = {}) {
         try {
-            // Try node-fetch first
-            const response = await fetch(url, options);
-            return {
-                ok: response.ok,
-                status: response.status,
-                json: () => response.json(),
-                text: () => response.text()
-            };
+            // Try node-fetch first if available
+            if (fetch) {
+                const response = await fetch(url, options);
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    json: () => response.json(),
+                    text: () => response.text()
+                };
+            } else {
+                // Fallback to native Node.js HTTP/HTTPS immediately
+                console.log(`[YouTubeBypass] Using native HTTP for: ${url}`);
+                return this.makeNativeRequest(url, options);
+            }
         } catch (fetchError) {
             // Fallback to native Node.js HTTP/HTTPS
             console.log(`[YouTubeBypass] Fetch failed, using native HTTP: ${fetchError.message}`);
+            return this.makeNativeRequest(url, options);
+        }
+    }
+
+    // Native Node.js HTTP/HTTPS request method
+    makeNativeRequest(url, options = {}) {
+        return new Promise((resolve, reject) => {
+            const urlObj = new URL(url);
+            const isHttps = urlObj.protocol === 'https:';
+            const lib = isHttps ? https : http;
             
-            return new Promise((resolve, reject) => {
-                const urlObj = new URL(url);
-                const isHttps = urlObj.protocol === 'https:';
-                const lib = isHttps ? https : http;
-                
-                const requestOptions = {
-                    hostname: urlObj.hostname,
-                    port: urlObj.port || (isHttps ? 443 : 80),
-                    path: urlObj.pathname + urlObj.search,
-                    method: options.method || 'GET',
-                    headers: options.headers || {}
-                };
-                
-                const req = lib.request(requestOptions, (res) => {
-                    let data = '';
-                    res.on('data', chunk => data += chunk);
-                    res.on('end', () => {
-                        resolve({
-                            ok: res.statusCode >= 200 && res.statusCode < 300,
-                            status: res.statusCode,
-                            json: () => Promise.resolve(JSON.parse(data)),
-                            text: () => Promise.resolve(data)
-                        });
+            const requestOptions = {
+                hostname: urlObj.hostname,
+                port: urlObj.port || (isHttps ? 443 : 80),
+                path: urlObj.pathname + urlObj.search,
+                method: options.method || 'GET',
+                headers: options.headers || {}
+            };
+            
+            const req = lib.request(requestOptions, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
+                    resolve({
+                        ok: res.statusCode >= 200 && res.statusCode < 300,
+                        status: res.statusCode,
+                        json: () => Promise.resolve(JSON.parse(data)),
+                        text: () => Promise.resolve(data)
                     });
                 });
-                
-                req.on('error', reject);
-                
-                if (options.body) {
-                    req.write(options.body);
-                }
-                
-                req.end();
             });
-        }
+            
+            req.on('error', reject);
+            
+            if (options.body) {
+                req.write(options.body);
+            }
+            
+            req.end();
+        });
     }
 
     // Simulate human-like request timing
