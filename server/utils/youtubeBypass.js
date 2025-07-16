@@ -24,6 +24,281 @@ class YouTubeBypass {
         this.proxyList = this.generateProxyList();
         this.currentProxyIndex = 0;
         this.bannedProxies = new Set();
+        
+        // Enhanced anti-bot detection counters
+        this.botDetectionCount = 0;
+        this.lastBotDetectionTime = 0;
+        this.sessionRotationCount = 0;
+        this.advancedEvasionMode = false;
+        this.humanBehaviorPatterns = this.generateHumanBehaviorPatterns();
+        this.deviceFingerprints = this.generateDeviceFingerprints();
+        this.currentDeviceIndex = 0;
+        this.browserSessions = this.generateBrowserSessions();
+        this.currentSessionIndex = 0;
+    }
+
+    // Generate human behavior patterns to avoid bot detection
+    generateHumanBehaviorPatterns() {
+        return {
+            clickPatterns: [
+                { x: 320, y: 180, duration: 120, pressure: 0.8 },
+                { x: 640, y: 360, duration: 95, pressure: 0.6 },
+                { x: 480, y: 270, duration: 110, pressure: 0.7 },
+                { x: 800, y: 450, duration: 105, pressure: 0.9 }
+            ],
+            scrollPatterns: [
+                { deltaY: -120, duration: 250 },
+                { deltaY: 80, duration: 180 },
+                { deltaY: -200, duration: 300 },
+                { deltaY: 150, duration: 220 }
+            ],
+            pausePatterns: [
+                { min: 800, max: 1200 },
+                { min: 1500, max: 2000 },
+                { min: 2200, max: 2800 },
+                { min: 3000, max: 4000 }
+            ],
+            mouseMovements: [
+                { fromX: 100, fromY: 100, toX: 200, toY: 150, duration: 300 },
+                { fromX: 300, fromY: 200, toX: 400, toY: 250, duration: 250 },
+                { fromX: 500, fromY: 300, toX: 600, toY: 350, duration: 280 },
+                { fromX: 700, fromY: 400, toX: 800, toY: 450, duration: 320 }
+            ]
+        };
+    }
+
+    // Generate device fingerprints for rotation
+    generateDeviceFingerprints() {
+        return [
+            {
+                platform: 'Win32',
+                screenWidth: 1920,
+                screenHeight: 1080,
+                colorDepth: 24,
+                pixelRatio: 1,
+                timezone: 'America/New_York',
+                language: 'en-US',
+                hardwareConcurrency: 8,
+                memory: 16,
+                webgl: 'ANGLE (Intel, Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0, D3D11)',
+                canvas: 'b4f8c8e2a1d6c4f8e2a1d6c4f8e2a1d6',
+                audio: 'AudioContext',
+                webrtc: '192.168.1.100'
+            },
+            {
+                platform: 'Win32',
+                screenWidth: 1366,
+                screenHeight: 768,
+                colorDepth: 24,
+                pixelRatio: 1,
+                timezone: 'America/Chicago',
+                language: 'en-US',
+                hardwareConcurrency: 4,
+                memory: 8,
+                webgl: 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0, D3D11)',
+                canvas: 'a3e7b9d1c5f2a3e7b9d1c5f2a3e7b9d1',
+                audio: 'AudioContext',
+                webrtc: '192.168.0.105'
+            },
+            {
+                platform: 'MacIntel',
+                screenWidth: 2560,
+                screenHeight: 1440,
+                colorDepth: 24,
+                pixelRatio: 2,
+                timezone: 'America/Los_Angeles',
+                language: 'en-US',
+                hardwareConcurrency: 12,
+                memory: 32,
+                webgl: 'WebGL 2.0 (OpenGL ES 3.0 Chromium)',
+                canvas: 'c6f9a2e8b4d1c6f9a2e8b4d1c6f9a2e8',
+                audio: 'AudioContext',
+                webrtc: '10.0.0.15'
+            }
+        ];
+    }
+
+    // Generate browser sessions with realistic characteristics
+    generateBrowserSessions() {
+        return [
+            {
+                sessionId: this.generateRandomString(32),
+                tabId: Math.floor(Math.random() * 1000000),
+                windowId: Math.floor(Math.random() * 100),
+                startTime: Date.now() - Math.floor(Math.random() * 3600000),
+                visitedPages: [
+                    'https://www.youtube.com/',
+                    'https://www.youtube.com/trending',
+                    'https://www.youtube.com/feed/subscriptions'
+                ],
+                interactions: Math.floor(Math.random() * 50) + 10,
+                scrollDistance: Math.floor(Math.random() * 5000) + 1000,
+                clickCount: Math.floor(Math.random() * 20) + 5
+            },
+            {
+                sessionId: this.generateRandomString(32),
+                tabId: Math.floor(Math.random() * 1000000),
+                windowId: Math.floor(Math.random() * 100),
+                startTime: Date.now() - Math.floor(Math.random() * 7200000),
+                visitedPages: [
+                    'https://www.youtube.com/',
+                    'https://www.youtube.com/results?search_query=music',
+                    'https://www.youtube.com/playlist?list=PLrAl6rYGs4IvGHarg28DJ_1d3_A8rQJuL'
+                ],
+                interactions: Math.floor(Math.random() * 80) + 20,
+                scrollDistance: Math.floor(Math.random() * 8000) + 2000,
+                clickCount: Math.floor(Math.random() * 35) + 10
+            }
+        ];
+    }
+
+    // Detect bot protection popup and implement counter-measures
+    async detectAndCounterBotProtection(response, videoId) {
+        try {
+            let responseText = '';
+            if (response && typeof response.text === 'function') {
+                responseText = await response.text();
+            } else if (response && response.data) {
+                responseText = JSON.stringify(response.data);
+            }
+            
+            // Check for bot detection indicators
+            const botDetectionIndicators = [
+                'Sign in to confirm you\'re not a bot',
+                'confirm you\'re not a bot',
+                'unusual traffic',
+                'automated requests',
+                'robot',
+                'captcha',
+                'verification',
+                'human verification',
+                'prove you\'re human',
+                'suspicious activity',
+                'rate limited',
+                'temporary block',
+                'please try again later'
+            ];
+            
+            const hasBotDetection = botDetectionIndicators.some(indicator => 
+                responseText.toLowerCase().includes(indicator.toLowerCase())
+            );
+            
+            if (hasBotDetection) {
+                this.botDetectionCount++;
+                this.lastBotDetectionTime = Date.now();
+                this.advancedEvasionMode = true;
+                
+                console.log(`[YouTubeBypass] Bot detection triggered! Count: ${this.botDetectionCount}`);
+                console.log(`[YouTubeBypass] Activating advanced evasion mode...`);
+                
+                // Implement immediate counter-measures
+                await this.implementBotProtectionCounterMeasures(videoId);
+                
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.log(`[YouTubeBypass] Error detecting bot protection: ${error.message}`);
+            return false;
+        }
+    }
+
+    // Implement comprehensive bot protection counter-measures
+    async implementBotProtectionCounterMeasures(videoId) {
+        console.log(`[YouTubeBypass] Implementing bot protection counter-measures...`);
+        
+        // Step 1: Rotate device fingerprint
+        this.currentDeviceIndex = (this.currentDeviceIndex + 1) % this.deviceFingerprints.length;
+        console.log(`[YouTubeBypass] Rotated to device fingerprint ${this.currentDeviceIndex + 1}`);
+        
+        // Step 2: Rotate browser session
+        this.currentSessionIndex = (this.currentSessionIndex + 1) % this.browserSessions.length;
+        console.log(`[YouTubeBypass] Rotated to browser session ${this.currentSessionIndex + 1}`);
+        
+        // Step 3: Generate new session fingerprint
+        this.sessionFingerprint = this.generateSessionFingerprint();
+        this.sessionRotationCount++;
+        console.log(`[YouTubeBypass] Generated new session fingerprint (rotation ${this.sessionRotationCount})`);
+        
+        // Step 4: Implement human-like delay
+        const humanDelay = this.calculateHumanDelay();
+        console.log(`[YouTubeBypass] Implementing human-like delay: ${humanDelay}ms`);
+        await new Promise(resolve => setTimeout(resolve, humanDelay));
+        
+        // Step 5: Simulate human browsing behavior
+        await this.simulateHumanBrowsingBehavior(videoId);
+        
+        // Step 6: Clear any cached data that might be flagged
+        this.clearSuspiciousCache();
+        
+        // Step 7: Switch to alternative API endpoints
+        this.rotationIndex = (this.rotationIndex + 1) % this.alternativeEndpoints.length;
+        console.log(`[YouTubeBypass] Switched to alternative endpoint ${this.rotationIndex + 1}`);
+        
+        console.log(`[YouTubeBypass] Bot protection counter-measures implemented successfully`);
+    }
+
+    // Calculate human-like delay based on bot detection frequency
+    calculateHumanDelay() {
+        const baseDelay = 2000; // 2 seconds base
+        const botDetectionMultiplier = Math.min(this.botDetectionCount * 1000, 10000); // Up to 10 seconds
+        const randomVariation = Math.random() * 3000; // 0-3 seconds random
+        
+        return baseDelay + botDetectionMultiplier + randomVariation;
+    }
+
+    // Simulate human browsing behavior to avoid bot detection
+    async simulateHumanBrowsingBehavior(videoId) {
+        console.log(`[YouTubeBypass] Simulating human browsing behavior...`);
+        
+        // Simulate visiting homepage first
+        await this.simulatePageVisit('homepage');
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+        
+        // Simulate searching or browsing
+        await this.simulatePageVisit('search');
+        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+        
+        // Simulate clicking on video
+        await this.simulatePageVisit(videoId);
+        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
+        
+        // Simulate mouse movements and scrolling
+        await this.simulateMouseMovements();
+        
+        console.log(`[YouTubeBypass] Human browsing behavior simulation completed`);
+    }
+
+    // Simulate realistic mouse movements
+    async simulateMouseMovements() {
+        const movements = this.humanBehaviorPatterns.mouseMovements;
+        const selectedMovement = movements[Math.floor(Math.random() * movements.length)];
+        
+        console.log(`[YouTubeBypass] Simulating mouse movement from (${selectedMovement.fromX}, ${selectedMovement.fromY}) to (${selectedMovement.toX}, ${selectedMovement.toY})`);
+        
+        // Simulate the duration of the movement
+        await new Promise(resolve => setTimeout(resolve, selectedMovement.duration));
+    }
+
+    // Clear suspicious cache data
+    clearSuspiciousCache() {
+        console.log(`[YouTubeBypass] Clearing suspicious cache data...`);
+        
+        // Reset failure count if too high
+        if (this.failureCount > 10) {
+            this.failureCount = Math.floor(this.failureCount / 2);
+        }
+        
+        // Clear banned proxies if too many
+        if (this.bannedProxies.size > 15) {
+            this.bannedProxies.clear();
+        }
+        
+        // Reset request count
+        this.requestCount = 0;
+        
+        console.log(`[YouTubeBypass] Cache cleared successfully`);
     }
 
     // Generate a list of realistic proxy IPs with proper structure
@@ -730,6 +1005,14 @@ class YouTubeBypass {
                 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Check for bot protection in response
+                    const botDetected = await this.detectAndCounterBotProtection(response, videoId);
+                    if (botDetected) {
+                        console.log(`[YouTubeBypass] Bot protection detected in TV HTML5 response`);
+                        return null; // This will trigger fallback methods
+                    }
+                    
                     if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
                         console.log(`[YouTubeBypass] TV HTML5 Embedded Player success!`);
                         return this.formatInternalAPIResponse(data);
@@ -830,6 +1113,14 @@ class YouTubeBypass {
                 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Check for bot protection in response
+                    const botDetected = await this.detectAndCounterBotProtection(response, videoId);
+                    if (botDetected) {
+                        console.log(`[YouTubeBypass] Bot protection detected in iOS Music API response`);
+                        return null; // This will trigger fallback methods
+                    }
+                    
                     if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
                         console.log(`[YouTubeBypass] iOS Music API ultra-stealth success!`);
                         return this.formatInternalAPIResponse(data);
@@ -928,6 +1219,14 @@ class YouTubeBypass {
                 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Check for bot protection in response
+                    const botDetected = await this.detectAndCounterBotProtection(response, videoId);
+                    if (botDetected) {
+                        console.log(`[YouTubeBypass] Bot protection detected in Android Client response`);
+                        return null; // This will trigger fallback methods
+                    }
+                    
                     if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
                         console.log(`[YouTubeBypass] Android Client deep anti-bot success!`);
                         return this.formatInternalAPIResponse(data);
@@ -1053,6 +1352,14 @@ class YouTubeBypass {
                 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Check for bot protection in response
+                    const botDetected = await this.detectAndCounterBotProtection(response, videoId);
+                    if (botDetected) {
+                        console.log(`[YouTubeBypass] Bot protection detected in Web Player response`);
+                        return null; // This will trigger fallback methods
+                    }
+                    
                     if (data.videoDetails && data.streamingData && !data.playabilityStatus?.status?.includes('ERROR')) {
                         console.log(`[YouTubeBypass] Web Player maximum stealth success!`);
                         return this.formatInternalAPIResponse(data);
@@ -1257,7 +1564,16 @@ class YouTubeBypass {
     // Enhanced main bypass method with adaptive behavior and proxy support
     async bypassYouTubeProtection(videoId) {
         console.log(`[YouTubeBypass] Starting enhanced bypass for video: ${videoId}`);
-        console.log(`[YouTubeBypass] Session stats - Failures: ${this.failureCount}, Last success: ${Date.now() - this.lastSuccessTime}ms ago`);
+        console.log(`[YouTubeBypass] Session stats - Failures: ${this.failureCount}, Bot detections: ${this.botDetectionCount}, Last success: ${Date.now() - this.lastSuccessTime}ms ago`);
+        
+        // Check if we're in advanced evasion mode due to bot detection
+        if (this.advancedEvasionMode) {
+            console.log(`[YouTubeBypass] Advanced evasion mode active - implementing enhanced measures`);
+            await this.implementBotProtectionCounterMeasures(videoId);
+            
+            // Disable advanced evasion mode after implementation
+            this.advancedEvasionMode = false;
+        }
         
         // Adaptive behavior based on failure count
         if (this.failureCount > 5) {
@@ -1266,19 +1582,30 @@ class YouTubeBypass {
             this.failureCount = 0;
         }
         
-        // If too many recent failures, wait longer before attempting
-        if (this.failureCount > 2) {
+        // Enhanced delay calculation based on bot detection
+        if (this.botDetectionCount > 0) {
+            const botAwareDelay = this.calculateHumanDelay();
+            console.log(`[YouTubeBypass] Bot detection history found, waiting ${botAwareDelay}ms`);
+            await new Promise(resolve => setTimeout(resolve, botAwareDelay));
+        } else if (this.failureCount > 2) {
             const waitTime = Math.min(this.failureCount * 2000, 10000);
             console.log(`[YouTubeBypass] Waiting ${waitTime}ms due to recent failures`);
             await new Promise(resolve => setTimeout(resolve, waitTime));
         }
         
         try {
+            // Pre-attempt: Simulate human browsing if bot detection occurred recently
+            if (this.lastBotDetectionTime > 0 && (Date.now() - this.lastBotDetectionTime) < 300000) { // 5 minutes
+                console.log(`[YouTubeBypass] Recent bot detection - simulating human browsing first`);
+                await this.simulateHumanBrowsingBehavior(videoId);
+            }
+            
             // Try internal API first (fastest)
             let result = await this.bypassUsingInternalAPI(videoId);
             if (result) {
                 console.log(`[YouTubeBypass] Success with internal API!`);
                 this.lastSuccessTime = Date.now();
+                this.botDetectionCount = Math.max(0, this.botDetectionCount - 1); // Reduce bot detection count on success
                 return result;
             }
             
@@ -1294,10 +1621,19 @@ class YouTubeBypass {
                         if (result) {
                             console.log(`[YouTubeBypass] Success with proxy: ${proxy.host}:${proxy.port}!`);
                             this.lastSuccessTime = Date.now();
+                            this.botDetectionCount = Math.max(0, this.botDetectionCount - 1); // Reduce bot detection count on success
                             return result;
                         }
                     } catch (error) {
                         console.log(`[YouTubeBypass] Proxy ${proxy.host}:${proxy.port} failed: ${error.message}`);
+                        
+                        // Check if the error indicates bot detection
+                        if (error.message.toLowerCase().includes('bot') || 
+                            error.message.toLowerCase().includes('verify') || 
+                            error.message.toLowerCase().includes('captcha')) {
+                            await this.detectAndCounterBotProtection({ data: error.message }, videoId);
+                        }
+                        
                         this.banProxy(proxy);
                     }
                 }
