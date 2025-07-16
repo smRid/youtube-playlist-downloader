@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "@radix-ui/react-slot": "^1.2.3",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -23,8 +25,7 @@
     "react-hot-toast": "^2.5.2",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
-    "youtube-dl-exec": "^3.0.22",
-    "ytdl-core": "^4.11.5"
+    "youtube-dl-exec": "^3.0.22"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

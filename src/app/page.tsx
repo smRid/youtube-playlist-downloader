@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Music, Video, Loader2 } from 'lucide-react'
+import { Music, Video, Loader2, Link, PlayCircle, Clock, Hash, Play } from 'lucide-react'
 
 interface VideoInfo {
   id: string
@@ -50,7 +50,7 @@ export default function Home() {
   const downloadVideo = async (videoId: string, format: 'mp4' | 'mp3') => {
     setDownloading(videoId)
     try {
-      const response = await fetch(`/api/download?videoId=${videoId}&format=${format}`)
+      const response = await fetch(`/api/download?videoId=${videoId}&format=${format}&quality=highest`)
       
       if (!response.ok) {
         const errorText = await response.text()
@@ -172,63 +172,90 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-blue-900">
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-950">
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Downlyst
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            Paste a YouTube playlist URL to view and download videos individually
+        <div className="text-center mb-8">
+          <div className="relative">
+            <h1 className="text-6xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4 tracking-tight">
+              Downlyst
+            </h1>
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+            <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+          </div>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            Transform any YouTube playlist into personal media library with one click
           </p>
         </div>
 
         {/* URL Input Card */}
-        <Card className="mb-8 shadow-lg border-0 bg-white/70 backdrop-blur-sm">
-          <CardContent className="p-8">
+        <Card className="mb-8 shadow-2xl border-0 bg-white/80 backdrop-blur-sm ring-1 ring-white/20">
+          <CardContent >
             
             {/* Info Section */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-              <h3 className="font-semibold text-blue-800 mb-2">🚀 How it works:</h3>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Paste a YouTube playlist URL below</li>
-                <li>• Browse all videos in the playlist</li>
-                <li>• Click download buttons to access multiple download services</li>
-                <li>• Choose your preferred service and quality</li>
-                <li>• For bulk downloads, use &quot;Download All&quot; buttons</li>
-              </ul>
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100/50">
+              <div className="flex items-center gap-3">
+              </div>
+              <div className=" gap-4">
+                <div className="flex items-start gap-3">
+
+                  <div>
+                    <p className="text-blue-800 font-medium">Paste playlist URL</p>
+                    <p className="text-blue-600 text-sm">Any YouTube playlist link works</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+
+                  <div>
+                    <p className="text-blue-800 font-medium">Browse videos</p>
+                    <p className="text-blue-600 text-sm">View all playlist content</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div>
+                    <p className="text-blue-800 font-medium">Direct download</p>
+                    <p className="text-blue-600 text-sm">MP4 video or MP3 audio</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div>
+                    <p className="text-blue-800 font-medium">Bulk download</p>
+                    <p className="text-blue-600 text-sm">Get entire playlist at once</p>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <div className="relative flex-1">
                 <Input
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://www.youtube.com/playlist?list=..."
-                  className="h-12 pl-4 pr-12 text-base border-2 border-gray-200 focus:border-blue-500 rounded-lg"
+                  className="h-14 pl-6 pr-16 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-white/50 backdrop-blur-sm transition-all duration-300 hover:bg-white/70 focus:bg-white/90"
                 />
                 <button 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200 hover:bg-blue-50 rounded-lg"
                   onClick={() => navigator.clipboard.readText().then(setUrl)}
+                  title="Paste from clipboard"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  <Link className="w-5 h-5" />
                 </button>
               </div>
               <Button 
                 onClick={fetchVideos} 
                 disabled={loading}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                className="h-14 px-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    <Loader2 className="h-5 w-5 animate-spin mr-3" />
                     Fetching...
                   </>
                 ) : (
-                  'Fetch Playlist'
+                  <>
+                    Fetch Playlist
+                  </>
                 )}
               </Button>
             </div>
@@ -237,120 +264,180 @@ export default function Home() {
 
         {/* Playlist Results */}
         {playlist && (
-          <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
-            <CardHeader className="pb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Music className="w-6 h-6 text-blue-600" />
+          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm ring-1 ring-white/20">
+            <CardHeader className="pb-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative">
+                  <div className="p-3 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl shadow-lg">
+                    <Play className="w-8 h-8 text-white fill-white" />
+                  </div>
+
                 </div>
-                <div>
-                  <CardTitle className="text-2xl font-bold text-gray-900">{playlist.playlistTitle}</CardTitle>
-                  <CardDescription className="text-base text-gray-600">
-                    By {playlist.playlistAuthor} • {playlist.videos.length} videos found
+                <div className="flex-1">
+                  <CardTitle className="text-3xl font-bold text-gray-900 mb-2">{playlist.playlistTitle}</CardTitle>
+                  <CardDescription className="text-lg text-gray-600 flex items-center gap-2">
+                    <span className="flex items-center gap-2">
+
+                      <span className="bg-red-50 text-red-700 px-3 py-1 rounded-full font-medium hover:bg-red-100 transition-colors cursor-pointer border border-red-200">
+                        {playlist.playlistAuthor}
+                      </span>
+                    </span>
+                    <span className="text-gray-400">•</span>
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                      {playlist.videos.length} videos
+                    </span>
                   </CardDescription>
                 </div>
               </div>
               
               {/* Bulk Download Options */}
-              <div className="flex gap-3 pt-4 border-t">
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium"
-                  onClick={() => downloadAllVideos('mp4')}
-                >
-                  <Video className="w-4 h-4 mr-2" />
-                  Download All as MP4 ({playlist.videos.length})
-                </Button>
-                <Button 
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium"
-                  onClick={() => downloadAllVideos('mp3')}
-                >
-                  <Music className="w-4 h-4 mr-2" />
-                  Download All as MP3 ({playlist.videos.length})
-                </Button>
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-100">
+                <h3 className="font-bold text-gray-900 mb-4 text-lg">Bulk Download Options</h3>
+                <div className="flex flex-wrap gap-4">
+                  <Button 
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    onClick={() => downloadAllVideos('mp4')}
+                  >
+                    <Video className="w-5 h-5 mr-3" />
+                    Download All as MP4
+                    <span className="ml-2 bg-white/20 px-2 py-1 rounded-full text-sm">
+                      {playlist.videos.length}
+                    </span>
+                  </Button>
+                  <Button 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    onClick={() => downloadAllVideos('mp3')}
+                  >
+                    <Music className="w-5 h-5 mr-3" />
+                    Download All as MP3
+                    <span className="ml-2 bg-white/20 px-2 py-1 rounded-full text-sm">
+                      {playlist.videos.length}
+                    </span>
+                  </Button>
+                </div>
               </div>
               
               {/* Info Messages */}
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  Bulk download will open multiple browser windows. Make sure to allow popups for this site.
-                </div>
-                <div className="flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded-lg">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  YouTube may temporarily block some downloads. If a video fails, try again later.
+              <div className="mt-6 space-y-3">
+                <div className="flex items-start gap-3 text-sm text-amber-700 bg-amber-50 px-4 py-3 rounded-xl border border-amber-200">
+                  <div className="flex-shrink-0 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">Large playlists may take time</p>
+                    <p className="text-amber-600 text-xs mt-1">Each video is processed individually for best quality</p>
+                  </div>
                 </div>
               </div>
             </CardHeader>
             
             <CardContent className="pt-0">
-              <div className="space-y-3">
+              <div className="space-y-6">
                 {playlist.videos.map((video: VideoInfo, index: number) => (
                   <div 
                     key={video.id} 
-                    className="flex items-center justify-between p-4 bg-white rounded-lg border hover:shadow-md transition-all duration-200"
+                    className="group relative overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 hover:scale-[1.01] hover:border-blue-200"
                   >
-                    <div className="flex items-center space-x-4 flex-1 min-w-0">
-                      {video.thumbnail && (
-                        <div className="relative">
-                          <Image 
-                            src={video.thumbnail} 
-                            alt={video.title} 
-                            width={120}
-                            height={68}
-                            className="w-30 h-17 object-cover rounded-lg"
-                          />
-                          <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded">
-                            {video.duration || '0:00'}
-                          </div>
+                    <div className="flex items-center p-6">
+                      {/* Video Thumbnail */}
+                      <div className="relative flex-shrink-0">
+                        <div className="absolute -top-3 -left-3 z-10 w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg ring-4 ring-white">
+                          {index + 1}
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate text-base mb-1">{video.title}</h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span>#{index + 1}</span>
+                        {video.thumbnail && (
+                          <div className="relative overflow-hidden rounded-2xl shadow-lg">
+                            <Image 
+                              src={video.thumbnail} 
+                              alt={video.title} 
+                              width={180}
+                              height={101}
+                              className="w-45 h-28 object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                            <div className="absolute bottom-2 right-2 bg-black/90 text-white text-xs px-2 py-1 rounded-lg font-medium backdrop-blur-sm">
+                              <Clock className="w-3 h-3 inline mr-1" />
+                              {video.duration || '0:00'}
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            {/* Play button overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                <PlayCircle className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Video Details */}
+                      <div className="flex-1 min-w-0 ml-6">
+                        <h3 className="font-bold text-gray-900 text-xl mb-3 leading-tight group-hover:text-blue-600 transition-colors duration-300" style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {video.title}
+                        </h3>
+                        
+                        {/* Video Meta */}
+                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                          <span className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full">
+                            <Hash className="w-3 h-3" />
+                            Video {index + 1}
+                          </span>
                           {video.duration && (
-                            <>
-                              <span>•</span>
-                              <span>{video.duration}</span>
-                            </>
+                            <span className="flex items-center gap-1 bg-blue-100 px-3 py-1 rounded-full text-blue-700">
+                              <Clock className="w-3 h-3" />
+                              {video.duration}
+                            </span>
                           )}
+                        </div>
+                        
+                        {/* Download Buttons */}
+                        <div className="flex gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadVideo(video.id, 'mp3')}
+                            disabled={downloading === video.id}
+                            className="bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 border-purple-200 hover:border-purple-300 px-6 py-3 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {downloading === video.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Music className="h-4 w-4 mr-2" />
+                            )}
+                            Audio (MP3)
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadVideo(video.id, 'mp4')}
+                            disabled={downloading === video.id}
+                            className="bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-700 border-green-200 hover:border-green-300 px-6 py-3 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {downloading === video.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Video className="h-4 w-4 mr-2" />
+                            )}
+                            Video (MP4)
+                          </Button>
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadVideo(video.id, 'mp3')}
-                        disabled={downloading === video.id}
-                        className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 px-4 py-2 font-medium"
-                      >
-                        {downloading === video.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <Music className="h-4 w-4 mr-1" />
-                        )}
-                        Download MP3
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadVideo(video.id, 'mp4')}
-                        disabled={downloading === video.id}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200 px-4 py-2 font-medium"
-                      >
-                        {downloading === video.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <Video className="h-4 w-4 mr-1" />
-                        )}
-                        Download MP4
-                      </Button>
-                    </div>
+                    
+                    {/* Loading Overlay */}
+                    {downloading === video.id && (
+                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-3xl">
+                        <div className="flex items-center gap-3 text-blue-600">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                          <span className="font-medium">Preparing download...</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
