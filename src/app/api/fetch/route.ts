@@ -22,30 +22,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 })
     }
 
-    // Validate YouTube playlist URL
+    // Validate YouTube URL
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-      return NextResponse.json({ error: 'Please provide a valid YouTube playlist URL' }, { status: 400 })
+      return NextResponse.json({ error: 'Please provide a valid YouTube URL' }, { status: 400 })
     }
 
-    // Extract playlist ID from URL
+    // Check if it's a playlist URL
     const playlistIdMatch = url.match(/[?&]list=([^&]+)/)
-    if (!playlistIdMatch) {
-      return NextResponse.json({ error: 'Invalid playlist URL' }, { status: 400 })
+    if (playlistIdMatch) {
+      const playlistId = playlistIdMatch[1]
+      
+      // Fetch playlist data from YouTube
+      const playlistData = await fetchYouTubePlaylist(playlistId)
+      
+      if (!playlistData) {
+        return NextResponse.json({ error: 'Failed to fetch playlist data' }, { status: 500 })
+      }
+
+      return NextResponse.json(playlistData)
     }
 
-    const playlistId = playlistIdMatch[1]
+    // Check if it's a single video URL
+    const videoIdMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
+    if (videoIdMatch) {
+      const videoId = videoIdMatch[1]
+      
+      // Fetch single video data
+      const videoData = await fetchYouTubeVideo(videoId)
+      
+      if (!videoData) {
+        return NextResponse.json({ error: 'Failed to fetch video data' }, { status: 500 })
+      }
 
-    // Fetch playlist data from YouTube
-    const playlistData = await fetchYouTubePlaylist(playlistId)
-    
-    if (!playlistData) {
-      return NextResponse.json({ error: 'Failed to fetch playlist data' }, { status: 500 })
+      return NextResponse.json(videoData)
     }
 
-    return NextResponse.json(playlistData)
+    return NextResponse.json({ error: 'Invalid YouTube URL. Please provide a valid playlist or video URL.' }, { status: 400 })
   } catch (error) {
-    console.error('Error fetching playlist:', error)
-    return NextResponse.json({ error: 'Failed to fetch playlist. Please check the URL and try again.' }, { status: 500 })
+    console.error('Error fetching YouTube data:', error)
+    return NextResponse.json({ error: 'Failed to fetch YouTube data. Please check the URL and try again.' }, { status: 500 })
   }
 }
 
@@ -560,6 +575,143 @@ async function fetchYouTubePlaylist(playlistId: string): Promise<PlaylistRespons
     
   } catch (error) {
     console.error('Error fetching YouTube playlist:', error)
+    return null
+  }
+}
+
+async function fetchYouTubeVideo(videoId: string): Promise<PlaylistResponse | null> {
+  try {
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
+    
+    const response = await fetch(videoUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    
+    const html = await response.text()
+    
+    // Extract video title
+    const titleMatch = html.match(/<title>([^<]+)<\/title>/)
+    let videoTitle = titleMatch ? titleMatch[1].replace(' - YouTube', '') : `Video ${videoId}`
+    
+    // Extract channel name
+    let channelName = 'Unknown Channel'
+    
+    // Try to extract from ytInitialData first
+    const ytInitialDataMatch = html.match(/var ytInitialData = ({.*?});/)
+    let ytData = null
+    
+    if (ytInitialDataMatch) {
+      try {
+        ytData = JSON.parse(ytInitialDataMatch[1])
+        console.log('Successfully parsed ytInitialData for video')
+        
+        // Extract channel name from video data
+        const channelFromData = extractChannelFromYtData(ytData)
+        if (channelFromData) {
+          channelName = channelFromData
+          console.log(`✓ Found channel name from video ytInitialData: ${channelName}`)
+        }
+        
+        // Extract video title from structured data
+        if (ytData.videoDetails && ytData.videoDetails.title) {
+          videoTitle = ytData.videoDetails.title
+          console.log(`✓ Found video title from ytInitialData: ${videoTitle}`)
+        }
+      } catch (e) {
+        console.log('Failed to parse ytInitialData for video:', e)
+      }
+    }
+    
+    // Extract duration from video data
+    let duration: string | null = null
+    
+    if (ytData) {
+      // Try to get duration from videoDetails
+      if (ytData.videoDetails && ytData.videoDetails.lengthSeconds) {
+        const seconds = parseInt(ytData.videoDetails.lengthSeconds)
+        const minutes = Math.floor(seconds / 60)
+        const remainingSeconds = seconds % 60
+        duration = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+        console.log(`✓ Found duration from videoDetails: ${duration}`)
+      }
+    }
+    
+    // Fallback regex patterns for channel name if not found
+    if (channelName === 'Unknown Channel') {
+      const authorPatterns = [
+        /"author":"([^"]+)"/,
+        /"channelName":"([^"]+)"/,
+        /"ownerChannelName":"([^"]+)"/,
+        /"uploaderName":"([^"]+)"/
+      ]
+      
+      for (const pattern of authorPatterns) {
+        const match = html.match(pattern)
+        if (match && match[1] && match[1].length > 0) {
+          channelName = match[1]
+          console.log(`✓ Found channel name via regex: ${channelName}`)
+          break
+        }
+      }
+    }
+    
+    // Fallback regex patterns for duration if not found
+    if (!duration) {
+      const durationPatterns = [
+        /"lengthSeconds":"(\d+)"/,
+        /"duration":"PT(\d+)M(\d+)S"/,
+        /"approxDurationMs":"(\d+)"/
+      ]
+      
+      for (const pattern of durationPatterns) {
+        const match = html.match(pattern)
+        if (match) {
+          if (pattern.source.includes('lengthSeconds')) {
+            const seconds = parseInt(match[1])
+            const minutes = Math.floor(seconds / 60)
+            const remainingSeconds = seconds % 60
+            duration = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+          } else if (pattern.source.includes('PT')) {
+            const minutes = parseInt(match[1])
+            const seconds = parseInt(match[2])
+            duration = `${minutes}:${seconds.toString().padStart(2, '0')}`
+          } else if (pattern.source.includes('approxDurationMs')) {
+            const milliseconds = parseInt(match[1])
+            const totalSeconds = Math.floor(milliseconds / 1000)
+            const minutes = Math.floor(totalSeconds / 60)
+            const seconds = totalSeconds % 60
+            duration = `${minutes}:${seconds.toString().padStart(2, '0')}`
+          }
+          console.log(`✓ Found duration via regex: ${duration}`)
+          break
+        }
+      }
+    }
+    
+    // Create video info object
+    const videoInfo: VideoInfo = {
+      id: videoId,
+      title: videoTitle,
+      duration: duration,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+      url: `https://www.youtube.com/watch?v=${videoId}`
+    }
+    
+    // Return as a single-video playlist
+    return {
+      videos: [videoInfo],
+      playlistTitle: videoTitle,
+      playlistAuthor: channelName
+    }
+    
+  } catch (error) {
+    console.error('Error fetching YouTube video:', error)
     return null
   }
 }
