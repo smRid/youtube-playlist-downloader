@@ -1,4 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
+import ytdl from '@distube/ytdl-core'
+
+// Advanced bot protection bypass configuration
+const YTDL_AGENT_OPTIONS = {
+  localAddress: undefined,
+  family: 4,
+  agent: false,
+  highWaterMark: 1024 * 1024 * 32,
+}
+
+// YouTube bypass headers
+const BYPASS_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+  'Sec-Ch-Ua-Mobile': '?0',
+  'Sec-Ch-Ua-Platform': '"Windows"',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
+  'Connection': 'keep-alive',
+  'Cache-Control': 'max-age=0',
+}
 
 interface VideoInfo {
   id: string
@@ -280,10 +307,13 @@ async function fetchYouTubePlaylist(playlistId: string): Promise<PlaylistRespons
   try {
     const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`
     
+    // Create agent with bot protection bypass
+    const agent = ytdl.createAgent(undefined, YTDL_AGENT_OPTIONS)
+    
     const response = await fetch(playlistUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+      headers: BYPASS_HEADERS,
+      // Add additional options for better success rate
+      signal: AbortSignal.timeout(30000), // 30 second timeout
     })
     
     if (!response.ok) {
@@ -583,10 +613,63 @@ async function fetchYouTubeVideo(videoId: string): Promise<PlaylistResponse | nu
   try {
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
     
-    const response = await fetch(videoUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    // Enhanced bot protection bypass for single video
+    const agent = ytdl.createAgent(undefined, YTDL_AGENT_OPTIONS)
+    
+    // Try to get video info using ytdl-core first for better metadata
+    let ytdlVideoInfo = null
+    try {
+      console.log('Fetching video info using ytdl-core with bot protection bypass...')
+      ytdlVideoInfo = await ytdl.getInfo(videoUrl, { 
+        agent,
+        requestOptions: {
+          headers: BYPASS_HEADERS,
+        }
+      })
+      console.log('Successfully fetched video info via ytdl-core')
+    } catch (ytdlError) {
+      console.warn('ytdl-core failed, falling back to HTML parsing:', ytdlError)
+    }
+    
+    // If ytdl-core worked, use its data
+    if (ytdlVideoInfo) {
+      const details = ytdlVideoInfo.videoDetails
+      
+      // Format duration properly
+      const formatDuration = (seconds: string) => {
+        const totalSeconds = parseInt(seconds)
+        const hours = Math.floor(totalSeconds / 3600)
+        const minutes = Math.floor((totalSeconds % 3600) / 60)
+        const secs = totalSeconds % 60
+        
+        if (hours > 0) {
+          return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+        } else {
+          return `${minutes}:${secs.toString().padStart(2, '0')}`
+        }
       }
+      
+      const video: VideoInfo = {
+        id: videoId,
+        title: details.title,
+        duration: details.lengthSeconds ? formatDuration(details.lengthSeconds) : null,
+        thumbnail: details.thumbnails && details.thumbnails.length > 0 
+          ? details.thumbnails[details.thumbnails.length - 1].url 
+          : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        url: videoUrl
+      }
+      
+      return {
+        videos: [video],
+        playlistTitle: details.title,
+        playlistAuthor: details.author?.name || 'Unknown Channel'
+      }
+    }
+    
+    // Fallback to HTML parsing if ytdl-core fails
+    const response = await fetch(videoUrl, {
+      headers: BYPASS_HEADERS,
+      signal: AbortSignal.timeout(30000), // 30 second timeout
     })
     
     if (!response.ok) {
@@ -695,7 +778,7 @@ async function fetchYouTubeVideo(videoId: string): Promise<PlaylistResponse | nu
     }
     
     // Create video info object
-    const videoInfo: VideoInfo = {
+    const singleVideoInfo: VideoInfo = {
       id: videoId,
       title: videoTitle,
       duration: duration,
@@ -705,7 +788,7 @@ async function fetchYouTubeVideo(videoId: string): Promise<PlaylistResponse | nu
     
     // Return as a single-video playlist
     return {
-      videos: [videoInfo],
+      videos: [singleVideoInfo],
       playlistTitle: videoTitle,
       playlistAuthor: channelName
     }

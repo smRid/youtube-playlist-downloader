@@ -1,0 +1,32 @@
+{
+  "functions": {
+    "src/app/api/download/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/fetch/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/search/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
