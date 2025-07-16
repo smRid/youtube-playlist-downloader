@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import ytdl from 'ytdl-core'
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,111 +15,105 @@ export async function GET(req: NextRequest) {
       return new NextResponse('Invalid format. Use mp4 or mp3', { status: 400 })
     }
 
-    const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`
-    
-    try {
-      // Try to get video info first to validate the video
-      const videoInfoResponse = await fetch(`https://www.youtube.com/oembed?url=${youtubeUrl}&format=json`)
-      let videoTitle = `video_${videoId}`
-      
-      if (videoInfoResponse.ok) {
-        const videoInfo = await videoInfoResponse.json()
-        videoTitle = videoInfo.title?.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_') || videoTitle
-      }
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
 
+    // Validate URL
+    if (!ytdl.validateURL(videoUrl)) {
+      return new NextResponse('Invalid YouTube URL', { status: 400 })
+    }
+
+    try {
+      // Get video info
+      const info = await ytdl.getInfo(videoUrl)
+      const title = info.videoDetails.title.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')
+      
       if (format === 'mp3') {
-        // For MP3 downloads, provide multiple converter options
-        const mp3Options = [
-          {
-            name: 'YT1s.com',
-            url: `https://www.yt1s.com/youtube-to-mp3?q=${encodeURIComponent(youtubeUrl)}`,
-            description: 'Fast MP3 converter'
-          },
-          {
-            name: 'Y2mate',
-            url: `https://www.y2mate.com/youtube-mp3/${videoId}`,
-            description: 'High quality MP3'
-          },
-          {
-            name: 'MP3Convert',
-            url: `https://mp3convert.io/youtube-to-mp3?url=${encodeURIComponent(youtubeUrl)}`,
-            description: 'Simple MP3 converter'
-          }
-        ]
-        
-        return NextResponse.json({ 
-          downloadOptions: mp3Options,
-          videoTitle,
-          youtubeUrl,
-          message: 'Choose an MP3 converter service',
-          videoId,
-          format: 'mp3'
+        // Audio only download
+        const audioStream = ytdl(videoUrl, {
+          quality: 'highestaudio',
+          filter: 'audioonly',
         })
+
+        // Set headers for audio download
+        const headers = new Headers({
+          'Content-Type': 'audio/mpeg',
+          'Content-Disposition': `attachment; filename="${title}.mp3"`,
+          'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*',
+        })
+
+        // Create a ReadableStream from the Node.js stream
+        const readableStream = new ReadableStream({
+          start(controller) {
+            audioStream.on('data', (chunk) => {
+              controller.enqueue(chunk)
+            })
+            
+            audioStream.on('end', () => {
+              controller.close()
+            })
+            
+            audioStream.on('error', (error) => {
+              controller.error(error)
+            })
+          }
+        })
+
+        return new Response(readableStream, { headers })
       } else {
-        // For MP4, provide multiple download options
-        const mp4Options = [
-          {
-            name: 'SaveFrom.net',
-            url: `https://sfrom.net/${youtubeUrl}`,
-            description: 'Popular video downloader'
-          },
-          {
-            name: 'Y2mate Video',
-            url: `https://www.y2mate.com/youtube/${videoId}`,
-            description: 'Multiple quality options'
-          },
-          {
-            name: 'KeepVid',
-            url: `https://keepvid.pro/youtube-downloader?url=${encodeURIComponent(youtubeUrl)}`,
-            description: 'High quality downloads'
-          },
-          {
-            name: 'ClipConverter',
-            url: `https://www.clipconverter.cc/download/youtube/${videoId}/`,
-            description: 'Advanced conversion options'
-          }
-        ]
-        
-        return NextResponse.json({ 
-          downloadOptions: mp4Options,
-          videoTitle,
-          youtubeUrl,
-          message: 'Choose a video download service',
-          videoId,
-          format: 'mp4'
+        // Video download
+        const videoStream = ytdl(videoUrl, {
+          quality: 'highest',
+          filter: 'audioandvideo',
         })
+
+        // Set headers for video download
+        const headers = new Headers({
+          'Content-Type': 'video/mp4',
+          'Content-Disposition': `attachment; filename="${title}.mp4"`,
+          'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*',
+        })
+
+        // Create a ReadableStream from the Node.js stream
+        const readableStream = new ReadableStream({
+          start(controller) {
+            videoStream.on('data', (chunk) => {
+              controller.enqueue(chunk)
+            })
+            
+            videoStream.on('end', () => {
+              controller.close()
+            })
+            
+            videoStream.on('error', (error) => {
+              controller.error(error)
+            })
+          }
+        })
+
+        return new Response(readableStream, { headers })
       }
-    } catch (fetchError) {
-      console.error('Error fetching video info:', fetchError)
+    } catch (ytdlError) {
+      console.error('YTDL Error:', ytdlError)
       
-      // Fallback options if video info fetch fails
-      const fallbackOptions = [
-        {
-          name: 'Direct YouTube',
-          url: youtubeUrl,
-          description: 'View on YouTube (use browser extension)'
-        },
-        {
-          name: 'Generic Downloader',
-          url: `https://www.genericdownloader.com/?url=${encodeURIComponent(youtubeUrl)}`,
-          description: 'Universal video downloader'
+      // If ytdl-core fails, return helpful error message
+      if (ytdlError instanceof Error) {
+        if (ytdlError.message.includes('Video unavailable')) {
+          return new NextResponse('Video is unavailable or private', { status: 404 })
         }
-      ]
+        if (ytdlError.message.includes('age')) {
+          return new NextResponse('Video is age-restricted', { status: 403 })
+        }
+        if (ytdlError.message.includes('region')) {
+          return new NextResponse('Video is not available in your region', { status: 403 })
+        }
+      }
       
-      return NextResponse.json({ 
-        downloadOptions: fallbackOptions,
-        videoTitle: `video_${videoId}`,
-        youtubeUrl,
-        message: 'Video info unavailable - using fallback options',
-        videoId,
-        format
-      })
+      return new NextResponse('Failed to download video. Please try again later.', { status: 500 })
     }
   } catch (error) {
     console.error('Download error:', error)
-    return NextResponse.json({ 
-      error: 'Download service unavailable',
-      message: 'Please try again later or use a browser extension'
-    }, { status: 500 })
+    return new NextResponse('Internal server error', { status: 500 })
   }
 }

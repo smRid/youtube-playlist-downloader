@@ -53,74 +53,84 @@ export default function Home() {
       const response = await fetch(`/api/download?videoId=${videoId}&format=${format}`)
       
       if (!response.ok) {
-        throw new Error('Download failed')
+        const errorText = await response.text()
+        throw new Error(errorText || 'Download failed')
       }
       
-      const data = await response.json()
+      // Check if response is a file download
+      const contentDisposition = response.headers.get('content-disposition')
       
-      if (data.downloadOptions) {
-        // Multiple download options available
-        const options = data.downloadOptions
+      if (contentDisposition && contentDisposition.includes('attachment')) {
+        // Direct file download
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
         
-        // Create a floating options panel
-        const optionsPanel = document.createElement('div')
-        optionsPanel.className = 'fixed top-20 right-4 bg-white border-2 border-gray-300 rounded-lg shadow-2xl p-4 z-50 max-w-sm'
-        optionsPanel.innerHTML = `
-          <div class="mb-3 font-semibold text-gray-800 border-b pb-2">
-            Download ${format.toUpperCase()} - ${data.videoTitle || 'Video'}
-          </div>
-          <div class="space-y-2">
-            ${options.map((option: { name: string; url: string; description: string }) => `
-              <button 
-                onclick="window.open('${option.url}', '_blank')"
-                class="block w-full text-left px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors"
-              >
-                <div class="font-medium text-blue-700">${option.name}</div>
-                <div class="text-xs text-gray-600">${option.description}</div>
-              </button>
-            `).join('')}
-          </div>
-          <button 
-            onclick="this.parentElement.remove()"
-            class="mt-3 w-full px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
-          >
-            Close Options
-          </button>
-        `
+        // Extract filename from content-disposition header
+        const filenameMatch = contentDisposition.match(/filename="([^"]+)"/)
+        const filename = filenameMatch ? filenameMatch[1] : `video_${videoId}.${format}`
         
-        document.body.appendChild(optionsPanel)
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
         
-        // Auto-remove after 45 seconds
-        setTimeout(() => {
-          if (optionsPanel.parentNode) {
-            optionsPanel.remove()
-          }
-        }, 45000)
-        
-        // Also open the first option automatically
-        if (options.length > 0) {
-          setTimeout(() => {
-            window.open(options[0].url, '_blank')
-          }, 500)
-        }
-        
-        toast.success(`${format.toUpperCase()} download options opened! Choose your preferred service.`, {
-          duration: 5000
-        })
-      } else if (data.downloadUrl) {
-        // Single download URL
-        window.open(data.downloadUrl, '_blank')
-        toast.success(`Opening ${format.toUpperCase()} download service!`)
-      } else if (data.youtubeUrl) {
-        // Fallback to YouTube URL
-        window.open(data.youtubeUrl, '_blank')
-        toast.info('Opened YouTube video - use a browser extension to download')
+        toast.success(`${format.toUpperCase()} download started!`)
       } else {
-        throw new Error('No download options available')
+        // Handle JSON response (fallback for errors)
+        const data = await response.json()
+        
+        if (data.downloadOptions) {
+          // Multiple download options available (fallback)
+          const options = data.downloadOptions
+          
+          // Create a floating options panel
+          const optionsPanel = document.createElement('div')
+          optionsPanel.className = 'fixed top-20 right-4 bg-white border-2 border-gray-300 rounded-lg shadow-2xl p-4 z-50 max-w-sm'
+          optionsPanel.innerHTML = `
+            <div class="mb-3 font-semibold text-gray-800 border-b pb-2">
+              Download ${format.toUpperCase()} - ${data.videoTitle || 'Video'}
+            </div>
+            <div class="space-y-2">
+              ${options.map((option: { name: string; url: string; description: string }) => `
+                <button 
+                  onclick="window.open('${option.url}', '_blank')"
+                  class="block w-full text-left px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors"
+                >
+                  <div class="font-medium text-blue-700">${option.name}</div>
+                  <div class="text-xs text-gray-600">${option.description}</div>
+                </button>
+              `).join('')}
+            </div>
+            <button 
+              onclick="this.parentElement.remove()"
+              class="mt-3 w-full px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+            >
+              Close Options
+            </button>
+          `
+          
+          document.body.appendChild(optionsPanel)
+          
+          // Auto-remove after 45 seconds
+          setTimeout(() => {
+            if (optionsPanel.parentNode) {
+              optionsPanel.remove()
+            }
+          }, 45000)
+          
+          toast.success(`${format.toUpperCase()} download options opened! Choose your preferred service.`, {
+            duration: 5000
+          })
+        } else {
+          throw new Error('No download options available')
+        }
       }
     } catch (error) {
       console.error('Download error:', error)
-      toast.error('Download failed. Please try again.')
+      toast.error(`Download failed: ${error instanceof Error ? error.message : 'Please try again.'}`)
     } finally {
       setDownloading(null)
     }
