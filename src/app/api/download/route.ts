@@ -1,87 +1,175 @@
 import { NextRequest, NextResponse } from "next/server"
 import ytdl from '@distube/ytdl-core'
 
-// Enhanced 2025 YouTube Bypass Headers
-const BYPASS_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.9',
+// 🔥 ULTRA AGGRESSIVE 2025 VERCEL BYPASS HEADERS
+const ULTRA_BYPASS_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8,de;q=0.7,es;q=0.6',
   'Accept-Encoding': 'gzip, deflate, br, zstd',
-  'Cache-Control': 'no-cache',
-  'Pragma': 'no-cache',
+  'Cache-Control': 'max-age=0',
   'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
   'Sec-Ch-Ua-Mobile': '?0',
   'Sec-Ch-Ua-Platform': '"Windows"',
+  'Sec-Ch-Ua-Arch': '"x86"',
+  'Sec-Ch-Ua-Bitness': '"64"',
+  'Sec-Ch-Ua-Full-Version': '"131.0.6778.108"',
   'Sec-Fetch-Dest': 'document',
   'Sec-Fetch-Mode': 'navigate',
-  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-Site': 'same-origin',
   'Sec-Fetch-User': '?1',
   'Upgrade-Insecure-Requests': '1',
   'Connection': 'keep-alive',
   'DNT': '1',
+  'Sec-GPC': '1',
 }
 
-// Generate random cookies and headers for each request
+// Generate random cookies and headers for each request with ULTRA BYPASS
 function getRandomizedHeaders() {
   const randomIP = `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`
   const timestamp = Date.now()
+  const sessionId = Math.random().toString(36).substring(2, 15)
+  const visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   
   return {
-    ...BYPASS_HEADERS,
+    ...ULTRA_BYPASS_HEADERS,
     'X-Forwarded-For': randomIP,
     'X-Real-IP': randomIP,
     'X-Client-IP': randomIP,
-    'Cookie': `CONSENT=YES+cb.20220419-17-p0.en+FX+700; PREF=f1=50000000&f4=4000000&f5=30000&f6=8&hl=en; YSC=${timestamp}; VISITOR_INFO1_LIVE=${timestamp}`,
+    'CF-Connecting-IP': randomIP,
+    'True-Client-IP': randomIP,
+    'X-Forwarded-Proto': 'https',
+    'X-Forwarded-Port': '443',
+    'Cookie': `CONSENT=YES+cb.20240719-17-p0.en+FX+700; PREF=f1=50000000&f4=4000000&f5=30000&f6=8&hl=en&gl=US; YSC=${sessionId}; VISITOR_INFO1_LIVE=${visitorId}; GPS=1; __Secure-3PAPISID=${timestamp}; LOGIN_INFO=AFmmF2swRAIgYtKAJSiRK1b; SID=${sessionId}_${timestamp}`,
     'Origin': 'https://www.youtube.com',
     'Referer': 'https://www.youtube.com/',
+    'Authority': 'www.youtube.com',
+    'X-YouTube-Client-Name': '1',
+    'X-YouTube-Client-Version': '2.20240719.00.00',
+    'X-Requested-With': 'XMLHttpRequest',
+    'X-Goog-AuthUser': '0',
+    'X-Goog-Visitor-Id': visitorId,
+    'X-Origin': 'https://www.youtube.com',
   }
 }
 
-// Main download function with multiple fallback configurations
+// Main download function with ULTRA AGGRESSIVE fallback configurations
 async function downloadVideoWithFallbacks(videoUrl: string, format: 'mp4' | 'mp3') {
+  // Create custom agents with different configurations
+  const chromeAgent = ytdl.createAgent(undefined, {})
+  const firefoxAgent = ytdl.createAgent(undefined, {})
+
   const configurations = [
     {
-      name: 'Chrome Desktop Latest',
-      agent: ytdl.createAgent(undefined, {}),
+      name: '🔥 ULTRA Chrome Bypass',
+      agent: chromeAgent,
       options: {
         quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
         filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
         requestOptions: {
           headers: getRandomizedHeaders(),
-          timeout: 30000,
+          timeout: 45000,
+          maxRetries: 3,
+          retryDelay: 2000,
         }
       }
     },
     {
-      name: 'Firefox Fallback',
+      name: '🚀 Mobile Chrome Spoof',
       agent: ytdl.createAgent(undefined, {}),
       options: {
         quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const, 
         filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
         requestOptions: {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'DNT': '1',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            'Sec-Ch-Ua-Mobile': '?1',
+            'Sec-Ch-Ua-Platform': '"Android"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
             'Origin': 'https://www.youtube.com',
             'Referer': 'https://www.youtube.com/',
+            'Cookie': `CONSENT=YES+cb.20240719-17-p0.en+FX+700; PREF=hl=en&gl=US`,
+            'X-Forwarded-For': `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`,
           },
-          timeout: 25000,
+          timeout: 35000,
         }
       }
     },
     {
-      name: 'Mobile Safari Bypass',
+      name: '⚡ Firefox ESR Bypass',
+      agent: firefoxAgent,
+      options: {
+        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
+        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Origin': 'https://www.youtube.com',
+            'Referer': 'https://www.youtube.com/',
+            'Cookie': 'CONSENT=YES+cb; PREF=hl=en',
+          },
+          timeout: 30000,
+        }
+      }
+    },
+    {
+      name: '🍎 Safari Desktop Bypass',
       agent: ytdl.createAgent(undefined, {}),
       options: {
         quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
         filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const, 
         requestOptions: {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
-            'Accept': '*/*',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Origin': 'https://www.youtube.com',
+            'Referer': 'https://www.youtube.com/',
+            'Cookie': 'CONSENT=YES+cb.20240719-17-p0.en+FX+700',
+          },
+          timeout: 25000,
+        }
+      }
+    },
+    {
+      name: '🤖 Edge Bypass',
+      agent: ytdl.createAgent(undefined, {}),
+      options: {
+        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
+        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Sec-Ch-Ua': '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': '"Windows"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
             'Origin': 'https://www.youtube.com',
             'Referer': 'https://www.youtube.com/',
           },
@@ -91,20 +179,25 @@ async function downloadVideoWithFallbacks(videoUrl: string, format: 'mp4' | 'mp3
     }
   ]
 
-  for (const config of configurations) {
+  for (let i = 0; i < configurations.length; i++) {
+    const config = configurations[i]
     try {
-      console.log(`🔄 Attempting ${config.name}...`)
+      console.log(`🔄 ${config.name} (${i + 1}/${configurations.length})...`)
       
-      // Random delay to avoid detection
-      await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000))
+      // Randomized delay between attempts (1-4 seconds)
+      const delay = Math.random() * 3000 + 1000
+      await new Promise(resolve => setTimeout(resolve, delay))
       
+      console.log(`📡 Getting video info with ${config.name}...`)
       const info = await ytdl.getInfo(videoUrl, {
         agent: config.agent,
         requestOptions: config.options.requestOptions
       })
       
-      console.log(`✅ ${config.name} got video info:`, info.videoDetails.title)
+      console.log(`✅ ${config.name} SUCCESS! Title:`, info.videoDetails.title)
+      console.log(`📊 Available formats:`, info.formats.length)
       
+      // Create stream with the same config
       const stream = ytdl(videoUrl, {
         ...config.options,
         agent: config.agent,
@@ -113,12 +206,22 @@ async function downloadVideoWithFallbacks(videoUrl: string, format: 'mp4' | 'mp3
       return { success: true, stream, info }
       
     } catch (error) {
-      console.error(`❌ ${config.name} failed:`, error)
+      const errorMessage = (error as Error)?.message || 'Unknown error'
+      console.error(`❌ ${config.name} FAILED:`, errorMessage)
+      
+      // If it's the last config, don't wait
+      if (i === configurations.length - 1) {
+        console.error('💥 All configurations exhausted!')
+        break
+      }
+      
+      // Wait before next attempt
+      await new Promise(resolve => setTimeout(resolve, 1000))
       continue
     }
   }
   
-  return { success: false, error: 'All bypass methods failed' }
+  return { success: false, error: 'All ultra bypass methods failed - YouTube 2025 protection too strong' }
 }
 
 export async function GET(req: NextRequest) {
@@ -208,14 +311,16 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    // All methods failed
-    console.error('💥 All download methods failed')
+    // All methods failed - Ultra aggressive response
+    console.error('💥 ALL ULTRA BYPASS METHODS FAILED!')
     return NextResponse.json({
       success: false,
-      error: 'Failed to download video. YouTube may have enhanced protection on this video.',
-      suggestion: 'Try a different video or wait a few minutes before retrying.',
-      methods: ['Chrome Desktop', 'Firefox Fallback', 'Mobile Safari'],
-      timestamp: new Date().toISOString()
+      error: 'ULTRA BYPASS FAILED: YouTube 2025 protection defeated all methods.',
+      suggestion: 'This video has maximum protection. Try: 1) Different video 2) Wait 10+ minutes 3) Try during off-peak hours',
+      methods: ['🔥 ULTRA Chrome', '🚀 Mobile Chrome', '⚡ Firefox ESR', '🍎 Safari Desktop', '🤖 Edge Bypass'],
+      protection_level: 'MAXIMUM',
+      timestamp: new Date().toISOString(),
+      debug_info: 'All 5 ultra-aggressive bypass methods exhausted'
     }, { 
       status: 503, 
       headers: corsHeaders 
