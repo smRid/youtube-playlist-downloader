@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import ytdl from '@distube/ytdl-core'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 
-// Advanced bot protection bypass configuration
-const YTDL_AGENT_OPTIONS = {
-  localAddress: undefined,
-  family: 4,
-  agent: false,
-  highWaterMark: 1024 * 1024 * 32,
-}
+const execAsync = promisify(exec)
 
-// YouTube bypass cookies and headers
-const BYPASS_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+// 🔥 2025 ULTIMATE BYPASS HEADERS - MOST AGGRESSIVE
+const ULTRA_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9',
   'Accept-Encoding': 'gzip, deflate, br',
-  'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+  'Cache-Control': 'no-cache',
+  'Pragma': 'no-cache',
+  'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
   'Sec-Ch-Ua-Mobile': '?0',
   'Sec-Ch-Ua-Platform': '"Windows"',
   'Sec-Fetch-Dest': 'document',
@@ -24,211 +22,240 @@ const BYPASS_HEADERS = {
   'Sec-Fetch-User': '?1',
   'Upgrade-Insecure-Requests': '1',
   'Connection': 'keep-alive',
-  'Cache-Control': 'max-age=0',
+  'DNT': '1',
+  'Cookie': 'CONSENT=YES+cb.20220419-17-p0.en+FX+700; PREF=f1=50000000&f4=4000000&f5=30000&f6=8&hl=en;',
+  'X-Forwarded-For': `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`,
+  'Origin': 'https://www.youtube.com',
+  'Referer': 'https://www.youtube.com/',
 }
 
+// 🚀 METHOD 1: YT-DLP CLI (Most Reliable 2025)
+async function downloadWithYtDlp(videoUrl: string, format: 'mp4' | 'mp3'): Promise<{ success: boolean; directUrl?: string; title?: string; error?: string }> {
+  try {
+    console.log('🔥 YT-DLP CLI ULTRA BYPASS (2025)...')
+    
+    // Get video info
+    const infoCommand = `yt-dlp --no-warnings --dump-single-json --add-header "User-Agent:${ULTRA_HEADERS['User-Agent']}" --add-header "Accept:*/*" --add-header "Origin:https://www.youtube.com" --add-header "Referer:https://www.youtube.com/" --geo-bypass --geo-bypass-country US "${videoUrl}"`
+    
+    const { stdout: info } = await execAsync(infoCommand)
+    const videoInfo = JSON.parse(info.trim())
+    console.log('✅ Got video info:', videoInfo.title)
+    
+    // Get direct URL
+    const urlCommand = format === 'mp3'
+      ? `yt-dlp --no-warnings -f "bestaudio/best" --get-url --add-header "User-Agent:${ULTRA_HEADERS['User-Agent']}" --add-header "Accept:*/*" --add-header "Origin:https://www.youtube.com" --add-header "Referer:https://www.youtube.com/" --geo-bypass "${videoUrl}"`
+      : `yt-dlp --no-warnings -f "best[ext=mp4]/best" --get-url --add-header "User-Agent:${ULTRA_HEADERS['User-Agent']}" --add-header "Accept:*/*" --add-header "Origin:https://www.youtube.com" --add-header "Referer:https://www.youtube.com/" --geo-bypass "${videoUrl}"`
+    
+    const { stdout: url } = await execAsync(urlCommand)
+    const directUrl = url.trim()
+    
+    if (directUrl && directUrl.startsWith('http')) {
+      console.log('🎉 YT-DLP SUCCESS!')
+      return { success: true, directUrl, title: videoInfo.title }
+    }
+    throw new Error('No direct URL')
+  } catch (error) {
+    console.error('❌ YT-DLP failed:', error)
+    return { success: false, error: String(error) }
+  }
+}
+
+// 🔧 METHOD 2: Advanced YTDL-CORE
+async function downloadWithYtdl(videoUrl: string, format: 'mp4' | 'mp3'): Promise<{ success: boolean; stream?: NodeJS.ReadableStream; info?: ytdl.videoInfo; error?: string }> {
+  const configurations = [
+    {
+      name: 'Chrome Ultra',
+      agent: ytdl.createAgent(undefined, {}),
+      options: {
+        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
+        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
+      }
+    },
+    {
+      name: 'Safari Mobile',
+      agent: ytdl.createAgent(undefined, {}),
+      options: {
+        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
+        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
+      }
+    },
+    {
+      name: 'Firefox',
+      agent: ytdl.createAgent(undefined, {}),
+      options: {
+        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
+        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
+      }
+    }
+  ]
+
+  for (const config of configurations) {
+    try {
+      console.log(`🔄 Trying ${config.name}...`)
+      
+      // Anti-detection delay
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000))
+      
+      const info = await ytdl.getInfo(videoUrl, { agent: config.agent })
+      console.log(`✅ ${config.name} got info:`, info.videoDetails.title)
+      
+      const stream = ytdl(videoUrl, {
+        agent: config.agent,
+        ...config.options
+      })
+      
+      return { success: true, stream, info }
+    } catch (error) {
+      console.error(`❌ ${config.name} failed:`, error)
+      continue
+    }
+  }
+  
+  return { success: false, error: 'All YTDL configs failed' }
+}
+
+// 🎯 MAIN HANDLER
 export async function GET(req: NextRequest) {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  }
+
   try {
     const { searchParams } = new URL(req.url)
     const videoId = searchParams.get('videoId')
     const format = searchParams.get('format') || 'mp4'
     
     if (!videoId) {
-      return new NextResponse('Missing videoId', { status: 400 })
+      return new NextResponse('Missing videoId', { status: 400, headers: corsHeaders })
     }
 
     if (!['mp4', 'mp3'].includes(format)) {
-      return new NextResponse('Invalid format. Use mp4 or mp3', { status: 400 })
+      return new NextResponse('Invalid format', { status: 400, headers: corsHeaders })
     }
 
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
-    console.log('Attempting to download:', videoUrl, 'format:', format, 'quality: highest')
+    console.log('🚀 ULTRA BYPASS INITIATED:', videoUrl, format)
 
-    // Advanced bot protection bypass - validate URL with enhanced options
-    try {
-      const isValid = ytdl.validateURL(videoUrl)
-      if (!isValid) {
-        console.error('Invalid YouTube URL:', videoUrl)
-        return new NextResponse('Invalid YouTube URL', { status: 400 })
+    // METHOD 1: YT-DLP CLI
+    const ytdlpResult = await downloadWithYtDlp(videoUrl, format as 'mp4' | 'mp3')
+    
+    if (ytdlpResult.success && ytdlpResult.directUrl) {
+      console.log('🎉 YT-DLP SUCCESS! Proxying stream...')
+      
+      const response = await fetch(ytdlpResult.directUrl, {
+        headers: ULTRA_HEADERS
+      })
+      
+      if (response.ok) {
+        const title = (ytdlpResult.title || 'video')
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '_')
+          .substring(0, 50)
+        
+        return new NextResponse(response.body, {
+          status: 200,
+          headers: {
+            'Content-Type': format === 'mp4' ? 'video/mp4' : 'audio/mpeg',
+            'Content-Disposition': `attachment; filename="${title}_ULTRA2025.${format}"`,
+            'Cache-Control': 'no-cache',
+            ...corsHeaders
+          }
+        })
       }
-    } catch (validateError) {
-      console.error('URL validation error:', validateError)
-      return new NextResponse('Error validating YouTube URL', { status: 400 })
     }
 
-    try {
-      // Enhanced info retrieval with bot protection bypass
-      console.log('Getting video info with advanced bot protection bypass...')
+    // METHOD 2: YTDL-CORE
+    const ytdlResult = await downloadWithYtdl(videoUrl, format as 'mp4' | 'mp3')
+    
+    if (ytdlResult.success && ytdlResult.stream && ytdlResult.info) {
+      console.log('🎉 YTDL SUCCESS! Streaming...')
       
-      // Create agent with enhanced options for bot protection bypass
-      const agent = ytdl.createAgent(undefined, {
-        ...YTDL_AGENT_OPTIONS,
-      })
-      
-      const info = await ytdl.getInfo(videoUrl, { 
-        agent,
-        requestOptions: {
-          headers: BYPASS_HEADERS,
-        }
-      })
-      
-      console.log('Video info retrieved successfully:', info.videoDetails.title)
-      
-      // Enhanced format filtering with quality prioritization
-      const availableFormats = ytdl.filterFormats(info.formats, 'audioandvideo')
-      console.log('Available video formats:', availableFormats.map(f => `${f.qualityLabel} - ${f.container} - ${f.contentLength ? Math.round(parseInt(f.contentLength) / 1024 / 1024) : 'unknown'} MB`))
-      
-      const availableAudioFormats = ytdl.filterFormats(info.formats, 'audioonly')
-      console.log('Available audio formats:', availableAudioFormats.map(f => `${f.audioBitrate}kbps - ${f.container}`))
-      
-      const title = info.videoDetails.title
+      const title = ytdlResult.info.videoDetails.title
         .replace(/[^\w\s-]/g, '')
         .replace(/\s+/g, '_')
-        .substring(0, 50) // Limit filename length
+        .substring(0, 50)
       
-      if (format === 'mp3') {
-        // Enhanced audio download with better quality selection
-        console.log('Starting high-quality audio stream with bot protection bypass...')
-        
-        // Get the best audio format with high bitrate and bypass protection
-        const audioOptions = {
-          quality: 'highestaudio' as const,
-          filter: 'audioonly' as const,
-          highWaterMark: 1024 * 1024 * 32, // 32MB buffer for smoother streaming
-          requestOptions: {
-            headers: BYPASS_HEADERS,
-          },
-          agent,
-        }
-        
-        const stream = ytdl(videoUrl, audioOptions)
-        
-        // Add timeout handling for stream
-        const streamTimeout = setTimeout(() => {
-          console.log('Stream timeout - destroying stream')
-          stream.destroy()
-        }, 60000) // 60 second timeout
-        
-        // Convert Node.js stream to Web API ReadableStream
-        const readable = new ReadableStream({
-          start(controller) {
-            stream.on('data', (chunk: Buffer) => {
+      let streamClosed = false
+      const readable = new ReadableStream({
+        start(controller) {
+          ytdlResult.stream!.on('data', (chunk: Buffer) => {
+            if (!streamClosed) {
               controller.enqueue(new Uint8Array(chunk))
-            })
-            
-            stream.on('end', () => {
-              console.log('High-quality audio stream ended')
-              clearTimeout(streamTimeout)
+            }
+          })
+          
+          ytdlResult.stream!.on('end', () => {
+            if (!streamClosed) {
               controller.close()
-            })
-            
-            stream.on('error', (error: Error) => {
-              console.error('Audio stream error:', error)
-              clearTimeout(streamTimeout)
+              streamClosed = true
+            }
+          })
+          
+          ytdlResult.stream!.on('error', (error: Error) => {
+            if (!streamClosed) {
               controller.error(error)
-            })
-          },
-          cancel() {
-            console.log('Audio stream cancelled')
-            clearTimeout(streamTimeout)
-            stream.destroy()
+              streamClosed = true
+            }
+          })
+        },
+        cancel() {
+          streamClosed = true
+          const stream = ytdlResult.stream as unknown
+          if (stream && typeof (stream as { destroy?: () => void }).destroy === 'function') {
+            (stream as { destroy: () => void }).destroy()
           }
-        })
+        }
+      })
 
-        return new Response(readable, {
-          headers: {
-            'Content-Type': 'audio/mpeg',
-            'Content-Disposition': `attachment; filename="${title}_HQ.mp3"`,
-            'Cache-Control': 'no-cache',
-            'Access-Control-Allow-Origin': '*',
-          },
-        })
-      } else {
-        // Enhanced video download with highest quality and bot protection
-        console.log('Starting high-quality video stream with bot protection bypass...')
-        
-        // Always use highest quality with enhanced buffering and bypass protection
-        const qualityOptions = {
-          quality: 'highest' as const,
-          filter: 'audioandvideo' as const,
-          highWaterMark: 1024 * 1024 * 32, // 32MB buffer
-          requestOptions: {
-            headers: BYPASS_HEADERS,
-          },
-          agent,
+      return new NextResponse(readable, {
+        status: 200,
+        headers: {
+          'Content-Type': format === 'mp4' ? 'video/mp4' : 'audio/mpeg',
+          'Content-Disposition': `attachment; filename="${title}_ULTRA2025.${format}"`,
+          'Cache-Control': 'no-cache',
+          ...corsHeaders
         }
-        
-        const stream = ytdl(videoUrl, qualityOptions)
-        
-        // Add timeout handling for stream
-        const streamTimeout = setTimeout(() => {
-          console.log('Stream timeout - destroying stream')
-          stream.destroy()
-        }, 60000) // 60 second timeout
-        
-        // Convert Node.js stream to Web API ReadableStream
-        const readable = new ReadableStream({
-          start(controller) {
-            stream.on('data', (chunk: Buffer) => {
-              controller.enqueue(new Uint8Array(chunk))
-            })
-            
-            stream.on('end', () => {
-              console.log('High-quality video stream ended')
-              clearTimeout(streamTimeout)
-              controller.close()
-            })
-            
-            stream.on('error', (error: Error) => {
-              console.error('Video stream error:', error)
-              clearTimeout(streamTimeout)
-              controller.error(error)
-            })
-          },
-          cancel() {
-            console.log('Video stream cancelled')
-            clearTimeout(streamTimeout)
-            stream.destroy()
-          }
-        })
-
-        return new Response(readable, {
-          headers: {
-            'Content-Type': 'video/mp4',
-            'Content-Disposition': `attachment; filename="${title}_HQ.mp4"`,
-            'Cache-Control': 'no-cache',
-            'Access-Control-Allow-Origin': '*',
-          },
-        })
-      }
-    } catch (ytdlError) {
-      console.error('YTDL Error:', ytdlError)
-      
-      // Provide more specific error messages
-      if (ytdlError instanceof Error) {
-        const errorMessage = ytdlError.message.toLowerCase()
-        
-        if (errorMessage.includes('video unavailable')) {
-          return new NextResponse('Video is unavailable or private', { status: 404 })
-        }
-        if (errorMessage.includes('age')) {
-          return new NextResponse('Video is age-restricted', { status: 403 })
-        }
-        if (errorMessage.includes('region')) {
-          return new NextResponse('Video is not available in your region', { status: 403 })
-        }
-        if (errorMessage.includes('extract')) {
-          return new NextResponse('YouTube extraction failed. Please try again later.', { status: 500 })
-        }
-        if (errorMessage.includes('rate')) {
-          return new NextResponse('Rate limited by YouTube. Please try again later.', { status: 429 })
-        }
-      }
-      
-      return new NextResponse('Failed to download video. Please try again later.', { status: 500 })
+      })
     }
-  } catch (error) {
-    console.error('General download error:', error)
-    return new NextResponse('Internal server error', { status: 500 })
+
+    // ALL METHODS FAILED
+    console.error('💥 ALL METHODS FAILED')
+    return NextResponse.json({
+      success: false,
+      error: 'YouTube blocked all advanced bypass methods. Video may be heavily protected.',
+      methods: ['YT-DLP CLI', 'YTDL-CORE Multi-Config'],
+      suggestion: 'YouTube 2025 protection is very strong. Try again in a few minutes.'
+    }, { 
+      status: 503, 
+      headers: corsHeaders 
+    })
+
+  } catch (error: unknown) {
+    console.error('💥 CRITICAL ERROR:', error)
+    const errorMessage = (error as Error)?.message || 'Unknown error'
+    
+    if (errorMessage.includes('429')) {
+      return new NextResponse('Rate limited by YouTube. Wait 5-10 minutes.', {
+        status: 429, headers: corsHeaders
+      })
+    }
+    
+    if (errorMessage.includes('403')) {
+      return new NextResponse('Access forbidden. Video may be private or restricted.', {
+        status: 403, headers: corsHeaders
+      })
+    }
+    
+    if (errorMessage.includes('404')) {
+      return new NextResponse('Video not found or removed.', {
+        status: 404, headers: corsHeaders
+      })
+    }
+
+    return new NextResponse('Failed with all ultra-aggressive methods. YouTube protection is very strong.', {
+      status: 500, headers: corsHeaders
+    })
   }
 }

@@ -195,11 +195,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-12 max-w-6xl">
+      <div className="container mx-auto px-2 sm:px-4 sm:py-12 max-w-6xl">
         {/* Header */}
-        <div className="text-center sm:mb-2">
+        <div className="text-center sm:mt-4">
           <div className="relative inline-block">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3 sm:mb-6 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-6 tracking-tight">
               Downlyst
             </h1>
             <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 w-3 h-3 sm:w-5 sm:h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse blur-sm"></div>
@@ -213,7 +213,7 @@ export default function Home() {
         {/* Introduction */}
         <div className="mb-4 sm:mb-8">
           <Card className="border-0 bg-white/60 backdrop-blur-xl shadow-2xl shadow-blue-500/10 ring-1 ring-white/20 hover:shadow-blue-500/20 transition-all duration-500">
-            <CardContent className="p-3 sm:p-4 md:p-6">
+            <CardContent className="p-3 sm:p-4 md:p-1">
               <div className="text-center">
                 <div className="flex flex-row justify-center items-center gap-2 sm:gap-4 md:gap-8">
                   <div className="flex items-center justify-center gap-1 sm:gap-2 md:gap-3">
@@ -252,7 +252,7 @@ export default function Home() {
         {/* Navigation and Input Area */}
         <div className="mb-8 sm:mb-12">
           <Card className="border-0 bg-white/60 backdrop-blur-xl shadow-2xl shadow-blue-500/10 ring-1 ring-white/20 hover:shadow-blue-500/20 transition-all duration-500">
-            <CardContent className="p-4 sm:p-6 md:p-8">
+            <CardContent className="p-4 sm:p-6 md:p-2">
               {/* Navigation Tabs */}
               <div className=" sm:mb-2">
                 <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
@@ -325,7 +325,7 @@ export default function Home() {
               {/* Input Area */}
               {activeTab === 'url' ? (
                 <div>
-                  <div className="mb-4 sm:mb-6 text-center">
+                  <div className="mb-4 sm:mb-6 sm:mt-4 text-center">
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Paste YouTube URL</h2>
                     <p className="text-sm sm:text-base text-gray-600 px-2">Enter any YouTube playlist or video URL to get started</p>
                   </div>
