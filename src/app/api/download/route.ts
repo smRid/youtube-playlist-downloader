@@ -230,8 +230,9 @@ export async function GET(req: NextRequest) {
       // Create a ReadableStream from Node.js stream
       const readable = new ReadableStream({
         start(controller) {
-          fileStream.on('data', (chunk) => {
-            controller.enqueue(new Uint8Array(chunk))
+          fileStream.on('data', (chunk: string | Buffer) => {
+            const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk
+            controller.enqueue(new Uint8Array(buffer))
           })
           fileStream.on('end', () => {
             controller.close()
