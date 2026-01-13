@@ -1,119 +1,135 @@
 # Downlyst - YouTube Playlist Downloader
 
-A modern, responsive YouTube playlist and video downloader built with Next.js 15 and advanced bot protection bypass methods.
+A modern, responsive YouTube playlist and video downloader built with Next.js 15.
 
-## Features
+![Downlyst Preview](https://img.shields.io/badge/Next.js-15.5-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)
 
-- 🎬 **Download YouTube playlists** - Fetch entire playlists with one click
-- 📱 **Single video downloads** - Download individual videos directly
-- 🔍 **YouTube search** - Search and download videos without leaving the app
-- 🎵 **Multiple formats** - Support for MP4 (video) and MP3 (audio)
-- 📱 **Mobile responsive** - Works perfectly on all devices
-- 🚀 **High quality** - Always downloads the highest quality available
-- 🛡️ **Bot protection bypass** - Advanced methods to bypass YouTube's restrictions
-- ⚡ **Fast & reliable** - Optimized for Vercel deployment
+## ✨ Features
 
-## Deployment
+- 🎬 **Playlist Downloads** - Fetch and download entire YouTube playlists
+- � **Single Video Downloads** - Download individual videos directly
+- 🔍 **YouTube Search** - Search and download videos without leaving the app
+- 🎵 **Multiple Formats** - MP4 (video) and MP3 (audio) support
+- 📱 **Fully Responsive** - Beautiful UI on desktop, tablet, and mobile
+- 🚀 **High Quality** - Downloads the best available quality
+- � **Smart Fallback** - External download services as backup when needed
 
-### Deploy to Vercel (Recommended)
+## 🛠️ Tech Stack
 
-1. **Fork this repository** or clone it to your GitHub account
+| Technology | Purpose |
+|------------|---------|
+| Next.js 15 | React framework with App Router |
+| TypeScript | Type-safe development |
+| Tailwind CSS 4 | Utility-first styling |
+| yt-dlp | YouTube download engine |
+| FFmpeg | Audio/video processing |
 
-2. **Connect to Vercel:**
-   - Go to [Vercel](https://vercel.com)
-   - Import your repository
-   - Configure the project settings
+## 🚀 Getting Started
 
-3. **Environment Variables** (Optional):
-   - No environment variables required for basic functionality
-   - All bot protection is built-in
+### Prerequisites
 
-4. **Deploy:**
-   - Click "Deploy"
-   - Wait for the build to complete
-   - Your app will be available at `https://your-app-name.vercel.app`
+- Node.js 18+ 
+- Python 3.x (for yt-dlp)
+- FFmpeg (optional, for best quality)
 
-### Manual Deployment
+### Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/youtube-playlist-downloader.git
 cd youtube-playlist-downloader
 
-# Install dependencies
+# Install Node.js dependencies
 npm install
 
-# Build the application
-npm run build
+# Install yt-dlp (required for downloads)
+pip install yt-dlp
 
-# Start the production server
-npm start
+# Install FFmpeg (recommended)
+# Windows: winget install Gyan.FFmpeg
+# macOS: brew install ffmpeg
+# Linux: sudo apt install ffmpeg
 ```
 
-## Local Development
+### Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Bot Protection Features
+### Production Build
 
-This application includes advanced bot protection bypass methods:
+```bash
+npm run build
+npm start
+```
 
-- **Custom User-Agent rotation** - Mimics real browser behavior
-- **Enhanced headers** - Includes all necessary browser headers
-- **Request optimization** - Optimized for Vercel's serverless environment
-- **Fallback mechanisms** - Multiple methods to ensure reliability
-- **Error handling** - Graceful handling of YouTube's restrictions
+## 📁 Project Structure
 
-## Technical Details
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── download/    # Video download endpoint
+│   │   ├── fetch/       # Playlist fetching endpoint
+│   │   └── search/      # YouTube search endpoint
+│   ├── layout.tsx       # Root layout
+│   └── page.tsx         # Main application page
+├── components/
+│   └── ui/              # Reusable UI components
+└── lib/
+    └── utils.ts         # Utility functions
+```
 
-- **Framework:** Next.js 15 with App Router
-- **Styling:** Tailwind CSS with custom responsive design
-- **YouTube Integration:** @distube/ytdl-core with custom bot protection
-- **Deployment:** Optimized for Vercel serverless functions
-- **TypeScript:** Full type safety throughout the application
+## 🔧 How It Works
 
-## Troubleshooting
+1. **Fetch**: Enter a YouTube URL or search query
+2. **Process**: The app fetches video metadata using yt-dlp
+3. **Download**: Choose MP3 or MP4 format
+4. **Fallback**: If direct download fails, external services are offered
 
-### Common Issues
+## ⚠️ Known Limitations
 
-1. **"Video not found" errors:**
-   - Ensure the URL is correct and the video is public
-   - Some age-restricted or region-locked videos may not work
+- YouTube actively blocks automated downloads; results may vary
+- Large videos may timeout on serverless platforms (Vercel)
+- Some age-restricted or region-locked videos may not work
+- For best results, run locally with yt-dlp installed
 
-2. **Download failures:**
-   - The app automatically retries with fallback methods
-   - Check your internet connection
-   - YouTube may temporarily block requests - try again later
+## 📋 Troubleshooting
 
-3. **Slow downloads:**
-   - Large playlists are processed with delays to prevent rate limiting
-   - Individual video downloads are optimized for speed
+| Issue | Solution |
+|-------|----------|
+| Download fails | External service links will be provided as fallback |
+| "yt-dlp not found" | Install via `pip install yt-dlp` |
+| Poor video quality | Install FFmpeg for proper audio/video merging |
+| Timeout errors | Run locally instead of on serverless platforms |
 
-### Vercel Deployment Issues
+## 🌐 Deployment
 
-- Ensure your Vercel account supports the required function timeout limits
-- Check the Vercel function logs for detailed error information
-- Make sure all dependencies are properly installed
+### Vercel (Limited)
 
-## License
+> ⚠️ **Note**: Serverless platforms have timeout limits. Direct downloads may not work; the app will fall back to external services.
 
-This project is for educational purposes only. Please respect YouTube's Terms of Service and copyright laws when using this application.
+1. Fork this repository
+2. Import to Vercel
+3. Deploy
 
-## Contributing
+### Self-Hosted (Recommended)
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+For full functionality, deploy on a VPS or dedicated server with yt-dlp and FFmpeg installed.
 
-## Support
+## 📄 License
 
-If you encounter any issues, please open an issue on GitHub with:
-- Your error message
-- Steps to reproduce
-- Browser and device information
+This project is for **educational purposes only**. Please respect YouTube's Terms of Service and copyright laws.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+---
+
+<p align="center">
+  Made with ❤️ using Next.js
+</p>

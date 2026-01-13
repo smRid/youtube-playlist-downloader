@@ -1,227 +1,181 @@
 import { NextRequest, NextResponse } from "next/server"
-import ytdl from '@distube/ytdl-core'
+import { spawn } from "child_process"
+import { existsSync, unlinkSync, createReadStream, statSync, readdirSync } from "fs"
+import { tmpdir } from "os"
+import { join } from "path"
 
-// 🔥 ULTRA AGGRESSIVE 2025 VERCEL BYPASS HEADERS
-const ULTRA_BYPASS_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-  'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8,de;q=0.7,es;q=0.6',
-  'Accept-Encoding': 'gzip, deflate, br, zstd',
-  'Cache-Control': 'max-age=0',
-  'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-  'Sec-Ch-Ua-Mobile': '?0',
-  'Sec-Ch-Ua-Platform': '"Windows"',
-  'Sec-Ch-Ua-Arch': '"x86"',
-  'Sec-Ch-Ua-Bitness': '"64"',
-  'Sec-Ch-Ua-Full-Version': '"131.0.6778.108"',
-  'Sec-Fetch-Dest': 'document',
-  'Sec-Fetch-Mode': 'navigate',
-  'Sec-Fetch-Site': 'same-origin',
-  'Sec-Fetch-User': '?1',
-  'Upgrade-Insecure-Requests': '1',
-  'Connection': 'keep-alive',
-  'DNT': '1',
-  'Sec-GPC': '1',
-}
+// Helper to find yt-dlp binary
+function findYtDlpSync(): string | null {
+  const homeDir = process.env.USERPROFILE || process.env.HOME || ''
 
-// Generate random cookies and headers for each request with ULTRA BYPASS
-function getRandomizedHeaders() {
-  const randomIP = `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`
-  const timestamp = Date.now()
-  const sessionId = Math.random().toString(36).substring(2, 15)
-  const visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-  
-  return {
-    ...ULTRA_BYPASS_HEADERS,
-    'X-Forwarded-For': randomIP,
-    'X-Real-IP': randomIP,
-    'X-Client-IP': randomIP,
-    'CF-Connecting-IP': randomIP,
-    'True-Client-IP': randomIP,
-    'X-Forwarded-Proto': 'https',
-    'X-Forwarded-Port': '443',
-    'Cookie': `CONSENT=YES+cb.20240719-17-p0.en+FX+700; PREF=f1=50000000&f4=4000000&f5=30000&f6=8&hl=en&gl=US; YSC=${sessionId}; VISITOR_INFO1_LIVE=${visitorId}; GPS=1; __Secure-3PAPISID=${timestamp}; LOGIN_INFO=AFmmF2swRAIgYtKAJSiRK1b; SID=${sessionId}_${timestamp}`,
-    'Origin': 'https://www.youtube.com',
-    'Referer': 'https://www.youtube.com/',
-    'Authority': 'www.youtube.com',
-    'X-YouTube-Client-Name': '1',
-    'X-YouTube-Client-Version': '2.20240719.00.00',
-    'X-Requested-With': 'XMLHttpRequest',
-    'X-Goog-AuthUser': '0',
-    'X-Goog-Visitor-Id': visitorId,
-    'X-Origin': 'https://www.youtube.com',
-  }
-}
-
-// Main download function with ULTRA AGGRESSIVE fallback configurations
-async function downloadVideoWithFallbacks(videoUrl: string, format: 'mp4' | 'mp3') {
-  // Create custom agents with different configurations
-  const chromeAgent = ytdl.createAgent(undefined, {})
-  const firefoxAgent = ytdl.createAgent(undefined, {})
-
-  const configurations = [
-    {
-      name: '🔥 ULTRA Chrome Bypass',
-      agent: chromeAgent,
-      options: {
-        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
-        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
-        requestOptions: {
-          headers: getRandomizedHeaders(),
-          timeout: 45000,
-          maxRetries: 3,
-          retryDelay: 2000,
-        }
-      }
-    },
-    {
-      name: '🚀 Mobile Chrome Spoof',
-      agent: ytdl.createAgent(undefined, {}),
-      options: {
-        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const, 
-        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
-        requestOptions: {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            'Sec-Ch-Ua-Mobile': '?1',
-            'Sec-Ch-Ua-Platform': '"Android"',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Origin': 'https://www.youtube.com',
-            'Referer': 'https://www.youtube.com/',
-            'Cookie': `CONSENT=YES+cb.20240719-17-p0.en+FX+700; PREF=hl=en&gl=US`,
-            'X-Forwarded-For': `${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}.${Math.floor(Math.random() * 255) + 1}`,
-          },
-          timeout: 35000,
-        }
-      }
-    },
-    {
-      name: '⚡ Firefox ESR Bypass',
-      agent: firefoxAgent,
-      options: {
-        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
-        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
-        requestOptions: {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Origin': 'https://www.youtube.com',
-            'Referer': 'https://www.youtube.com/',
-            'Cookie': 'CONSENT=YES+cb; PREF=hl=en',
-          },
-          timeout: 30000,
-        }
-      }
-    },
-    {
-      name: '🍎 Safari Desktop Bypass',
-      agent: ytdl.createAgent(undefined, {}),
-      options: {
-        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
-        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const, 
-        requestOptions: {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Origin': 'https://www.youtube.com',
-            'Referer': 'https://www.youtube.com/',
-            'Cookie': 'CONSENT=YES+cb.20240719-17-p0.en+FX+700',
-          },
-          timeout: 25000,
-        }
-      }
-    },
-    {
-      name: '🤖 Edge Bypass',
-      agent: ytdl.createAgent(undefined, {}),
-      options: {
-        quality: format === 'mp3' ? 'highestaudio' as const : 'highest' as const,
-        filter: format === 'mp3' ? 'audioonly' as const : 'audioandvideo' as const,
-        requestOptions: {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Sec-Ch-Ua': '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            'Sec-Ch-Ua-Mobile': '?0',
-            'Sec-Ch-Ua-Platform': '"Windows"',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Origin': 'https://www.youtube.com',
-            'Referer': 'https://www.youtube.com/',
-          },
-          timeout: 20000,
-        }
-      }
-    }
+  const possiblePaths = [
+    join(homeDir, "AppData", "Roaming", "Python", "Python313", "Scripts", "yt-dlp.exe"),
+    join(homeDir, "AppData", "Roaming", "Python", "Python312", "Scripts", "yt-dlp.exe"),
+    join(homeDir, "AppData", "Roaming", "Python", "Python311", "Scripts", "yt-dlp.exe"),
+    join(homeDir, "AppData", "Local", "Programs", "Python", "Python313", "Scripts", "yt-dlp.exe"),
+    join(homeDir, "AppData", "Local", "Programs", "Python", "Python312", "Scripts", "yt-dlp.exe"),
   ]
 
-  for (let i = 0; i < configurations.length; i++) {
-    const config = configurations[i]
-    try {
-      console.log(`🔄 ${config.name} (${i + 1}/${configurations.length})...`)
-      
-      // Randomized delay between attempts (1-4 seconds)
-      const delay = Math.random() * 3000 + 1000
-      await new Promise(resolve => setTimeout(resolve, delay))
-      
-      console.log(`📡 Getting video info with ${config.name}...`)
-      const info = await ytdl.getInfo(videoUrl, {
-        agent: config.agent,
-        requestOptions: config.options.requestOptions
-      })
-      
-      console.log(`✅ ${config.name} SUCCESS! Title:`, info.videoDetails.title)
-      console.log(`📊 Available formats:`, info.formats.length)
-      
-      // Create stream with the same config
-      const stream = ytdl(videoUrl, {
-        ...config.options,
-        agent: config.agent,
-      })
-      
-      return { success: true, stream, info }
-      
-    } catch (error) {
-      const errorMessage = (error as Error)?.message || 'Unknown error'
-      console.error(`❌ ${config.name} FAILED:`, errorMessage)
-      
-      // If it's the last config, don't wait
-      if (i === configurations.length - 1) {
-        console.error('💥 All configurations exhausted!')
-        break
-      }
-      
-      // Wait before next attempt
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      continue
+  for (const binPath of possiblePaths) {
+    if (existsSync(binPath)) {
+      console.log(`✅ Found yt-dlp at: ${binPath}`)
+      return binPath
     }
   }
-  
-  return { success: false, error: 'All ultra bypass methods failed - YouTube 2025 protection too strong' }
+
+  console.log("❌ yt-dlp not found in any known location")
+  return null
+}
+
+// Download using yt-dlp with spawn (more reliable than exec)
+async function downloadWithYtDlp(videoId: string, format: 'mp4' | 'mp3'): Promise<{
+  success: boolean
+  filePath?: string
+  fileName?: string
+  error?: string
+}> {
+  const tempDir = tmpdir()
+  const timestamp = Date.now()
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
+
+  const ytDlpPath = findYtDlpSync()
+
+  if (!ytDlpPath) {
+    return { success: false, error: "yt-dlp binary not found" }
+  }
+
+  console.log(`🎬 Starting download: ${videoUrl} as ${format}`)
+
+  return new Promise((resolve) => {
+    // Build arguments based on format
+    const outputTemplate = join(tempDir, `${timestamp}_%(title).50s.%(ext)s`)
+
+    let args: string[]
+    if (format === 'mp3') {
+      args = [
+        '-x',
+        '--audio-format', 'mp3',
+        '--audio-quality', '0',
+        '-o', outputTemplate,
+        '--no-playlist',
+        '--no-check-certificates',
+        videoUrl
+      ]
+    } else {
+      args = [
+        '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        '--merge-output-format', 'mp4',
+        '-o', outputTemplate,
+        '--no-playlist',
+        '--no-check-certificates',
+        videoUrl
+      ]
+    }
+
+    console.log(`🔧 Running: ${ytDlpPath} ${args.join(' ')}`)
+
+    const child = spawn(ytDlpPath, args, {
+      timeout: 300000, // 5 minute timeout
+      windowsHide: true,
+    })
+
+    let stdout = ''
+    let stderr = ''
+
+    child.stdout?.on('data', (data) => {
+      const line = data.toString()
+      stdout += line
+      console.log(`📥 ${line.trim()}`)
+    })
+
+    child.stderr?.on('data', (data) => {
+      const line = data.toString()
+      stderr += line
+      console.warn(`⚠️ ${line.trim()}`)
+    })
+
+    child.on('error', (error) => {
+      console.error(`❌ Spawn error: ${error.message}`)
+      resolve({ success: false, error: error.message })
+    })
+
+    child.on('close', (code) => {
+      console.log(`� yt-dlp exited with code: ${code}`)
+      console.log(`📝 Full stdout: ${stdout}`)
+
+      if (code !== 0) {
+        resolve({ success: false, error: `yt-dlp exited with code ${code}: ${stderr || stdout}` })
+        return
+      }
+
+      // Find the downloaded file
+      try {
+        const ext = format === 'mp3' ? 'mp3' : 'mp4'
+        const files = readdirSync(tempDir)
+
+        // Look for files with our timestamp prefix
+        const downloadedFile = files.find((f: string) =>
+          f.startsWith(`${timestamp}_`) && (f.endsWith(`.${ext}`) || f.endsWith('.webm') || f.endsWith('.m4a'))
+        )
+
+        if (downloadedFile) {
+          const filePath = join(tempDir, downloadedFile)
+          console.log(`✅ Found downloaded file: ${filePath}`)
+          resolve({
+            success: true,
+            filePath,
+            fileName: downloadedFile.replace(`${timestamp}_`, '').replace(/\s+/g, '_')
+          })
+        } else {
+          // Try any file that starts with timestamp
+          const anyFile = files.find((f: string) => f.startsWith(`${timestamp}_`))
+          if (anyFile) {
+            const filePath = join(tempDir, anyFile)
+            console.log(`✅ Found file (alt): ${filePath}`)
+            resolve({
+              success: true,
+              filePath,
+              fileName: anyFile.replace(`${timestamp}_`, '').replace(/\s+/g, '_')
+            })
+          } else {
+            console.log(`❌ No file found with prefix ${timestamp}_`)
+            console.log(`📁 Files in temp: ${files.filter(f => f.includes(timestamp.toString().substring(0, 6))).join(', ')}`)
+            resolve({ success: false, error: "Downloaded file not found in temp directory" })
+          }
+        }
+      } catch (err) {
+        resolve({ success: false, error: `Error finding file: ${(err as Error).message}` })
+      }
+    })
+  })
+}
+
+// Fallback: Return external service URLs
+function getExternalDownloadUrls(videoId: string, format: 'mp4' | 'mp3') {
+  const videoUrl = encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)
+
+  return [
+    {
+      name: "Y2Mate",
+      url: `https://www.y2mate.com/youtube/${videoId}`,
+      description: `Download ${format.toUpperCase()} via Y2Mate`
+    },
+    {
+      name: "SaveFrom",
+      url: `https://en.savefrom.net/1-youtube-video-downloader-1/#url=${videoUrl}`,
+      description: `Download via SaveFrom.net`
+    },
+    {
+      name: "SSYouTube",
+      url: `https://ssyoutube.com/watch?v=${videoId}`,
+      description: `Download via SSYouTube`
+    },
+    {
+      name: "9xBuddy",
+      url: `https://9xbuddy.com/process?url=${videoUrl}`,
+      description: `Download via 9xBuddy`
+    }
+  ]
 }
 
 export async function GET(req: NextRequest) {
@@ -234,130 +188,115 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const videoId = searchParams.get('videoId')
-    const format = searchParams.get('format') || 'mp4'
-    
+    const format = (searchParams.get('format') || 'mp4') as 'mp4' | 'mp3'
+
     if (!videoId) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Missing videoId parameter' 
+      return NextResponse.json({
+        success: false,
+        error: 'Missing videoId parameter'
       }, { status: 400, headers: corsHeaders })
     }
 
     if (!['mp4', 'mp3'].includes(format)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid format. Use mp4 or mp3' 
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid format. Use mp4 or mp3'
       }, { status: 400, headers: corsHeaders })
     }
 
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
-    console.log('🚀 Starting download:', videoUrl, format)
+    console.log(`🚀 Starting download: videoId=${videoId}, format=${format}`)
 
-    const result = await downloadVideoWithFallbacks(videoUrl, format as 'mp4' | 'mp3')
-    
-    if (result.success && result.stream && result.info) {
-      console.log('🎉 Download successful! Starting stream...')
-      
-      const title = result.info.videoDetails.title
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '_')
-        .substring(0, 50)
-      
-      // Create readable stream for Vercel
-      let streamClosed = false
+    // Try yt-dlp (most reliable)
+    const result = await downloadWithYtDlp(videoId, format)
+
+    if (result.success && result.filePath && existsSync(result.filePath)) {
+      console.log('🎉 yt-dlp download successful! Streaming file...')
+
+      const stats = statSync(result.filePath)
+      const fileStream = createReadStream(result.filePath)
+
+      // Clean up the file after streaming
+      fileStream.on('close', () => {
+        try {
+          if (existsSync(result.filePath!)) {
+            unlinkSync(result.filePath!)
+            console.log(`🧹 Cleaned up: ${result.filePath}`)
+          }
+        } catch (cleanupError) {
+          console.error('Cleanup error:', cleanupError)
+        }
+      })
+
+      // Create a ReadableStream from Node.js stream
       const readable = new ReadableStream({
         start(controller) {
-          result.stream!.on('data', (chunk: Buffer) => {
-            if (!streamClosed) {
-              controller.enqueue(new Uint8Array(chunk))
-            }
+          fileStream.on('data', (chunk) => {
+            controller.enqueue(new Uint8Array(chunk))
           })
-          
-          result.stream!.on('end', () => {
-            if (!streamClosed) {
-              controller.close()
-              streamClosed = true
-            }
+          fileStream.on('end', () => {
+            controller.close()
           })
-          
-          result.stream!.on('error', (error: Error) => {
-            console.error('Stream error:', error)
-            if (!streamClosed) {
-              controller.error(error)
-              streamClosed = true
-            }
+          fileStream.on('error', (error) => {
+            controller.error(error)
           })
         },
         cancel() {
-          console.log('Stream cancelled by client')
-          streamClosed = true
-          const streamInstance = result.stream as unknown as { destroy?: () => void }
-          if (streamInstance && typeof streamInstance.destroy === 'function') {
-            streamInstance.destroy()
-          }
+          fileStream.destroy()
         }
       })
+
+      const safeFileName = (result.fileName || `video_${videoId}.${format}`)
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .substring(0, 100)
 
       return new NextResponse(readable, {
         status: 200,
         headers: {
           'Content-Type': format === 'mp4' ? 'video/mp4' : 'audio/mpeg',
-          'Content-Disposition': `attachment; filename="${title}_DownlyBot2025.${format}"`,
+          'Content-Disposition': `attachment; filename="${safeFileName}"`,
+          'Content-Length': stats.size.toString(),
           'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
           ...corsHeaders
         }
       })
     }
 
-    // All methods failed - Ultra aggressive response
-    console.error('💥 ALL ULTRA BYPASS METHODS FAILED!')
+    // yt-dlp failed - provide external service links as fallback
+    console.log('⚠️ yt-dlp failed:', result.error)
+    console.log('📎 Providing external download options')
+
+    const externalUrls = getExternalDownloadUrls(videoId, format)
+
     return NextResponse.json({
       success: false,
-      error: 'ULTRA BYPASS FAILED: YouTube 2025 protection defeated all methods.',
-      suggestion: 'This video has maximum protection. Try: 1) Different video 2) Wait 10+ minutes 3) Try during off-peak hours',
-      methods: ['🔥 ULTRA Chrome', '🚀 Mobile Chrome', '⚡ Firefox ESR', '🍎 Safari Desktop', '🤖 Edge Bypass'],
-      protection_level: 'MAXIMUM',
-      timestamp: new Date().toISOString(),
-      debug_info: 'All 5 ultra-aggressive bypass methods exhausted'
-    }, { 
-      status: 503, 
-      headers: corsHeaders 
+      message: 'Direct download unavailable. Please use one of the external services below:',
+      downloadOptions: externalUrls,
+      videoId,
+      format,
+      error: result.error,
+      suggestion: 'YouTube has strong protections. External services may work better.',
+      timestamp: new Date().toISOString()
+    }, {
+      status: 200,
+      headers: corsHeaders
     })
 
   } catch (error: unknown) {
     console.error('💥 Critical error:', error)
     const errorMessage = (error as Error)?.message || 'Unknown error'
-    
-    // Enhanced error handling
-    if (errorMessage.includes('Video unavailable')) {
+
+    const videoId = new URL(req.url).searchParams.get('videoId')
+    const format = (new URL(req.url).searchParams.get('format') || 'mp4') as 'mp4' | 'mp3'
+
+    if (videoId) {
+      const externalUrls = getExternalDownloadUrls(videoId, format)
       return NextResponse.json({
         success: false,
-        error: 'Video is unavailable, private, or has been removed.',
-      }, { status: 404, headers: corsHeaders })
-    }
-    
-    if (errorMessage.includes('429') || errorMessage.includes('rate')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Rate limited by YouTube. Please wait 5-10 minutes.',
-        retryAfter: 600
-      }, { status: 429, headers: corsHeaders })
-    }
-    
-    if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Access forbidden. Video may be region-locked or age-restricted.',
-      }, { status: 403, headers: corsHeaders })
-    }
-    
-    if (errorMessage.includes('timeout') || errorMessage.includes('TIMEOUT')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Request timeout. Video may be too large or server is busy.',
-      }, { status: 408, headers: corsHeaders })
+        error: 'Download failed. Try external services:',
+        downloadOptions: externalUrls,
+        debug: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        timestamp: new Date().toISOString()
+      }, { status: 200, headers: corsHeaders })
     }
 
     return NextResponse.json({
