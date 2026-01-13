@@ -4,6 +4,20 @@ A modern, responsive YouTube playlist and video downloader built with Next.js 15
 
 ![Downlyst Preview](https://img.shields.io/badge/Next.js-15.5-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)
 
+---
+
+## 🖼️ Preview
+
+<p align="center">
+  <img src="/public/Preview1.png" alt="Preview" width="800" />
+</p>
+
+---
+
+## 🔗 Live Demo : [Downlyst](https://downlyst.vercel.app/)
+
+---
+
 ## ✨ Features
 
 - 🎬 **Playlist Downloads** - Fetch and download entire YouTube playlists
